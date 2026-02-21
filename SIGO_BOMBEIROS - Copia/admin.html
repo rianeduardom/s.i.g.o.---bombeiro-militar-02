@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>S.I.G.O. | Gabinete Master</title>
+    <link rel="icon" href="https://cdn-icons-png.flaticon.com/512/2566/2566144.png" type="image/png">
+    <link rel="stylesheet" href="css/style.css">
+</head>
+
+<body class="body-painel" onload="carregarDadosAdmin()">
+
+    <div class="dashboard-layout" id="main-container">
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <h1 class="titulo-sigo-pequeno">S.I.G.O.</h1>
+                <p class="subtitulo-sidebar" style="color: var(--admin-gold);">Gabinete Alto Comando</p>
+            </div>
+            <nav class="sidebar-menu">
+                <p class="menu-label">CONTROLE E GESTÃO</p>
+                <button class="menu-btn ativo font-mono" id="btn-aba-dashboard"
+                    onclick="mudarAbaAdmin('aba-dashboard')">[ DASHBOARD GERAL ]</button>
+                <button class="menu-btn font-mono" id="btn-aba-efetivo" onclick="mudarAbaAdmin('aba-efetivo')">[
+                    GERENCIAR CIDADÃOS / EFETIVO ]</button>
+                <button class="menu-btn font-mono" id="btn-aba-batalhoes" onclick="mudarAbaAdmin('aba-batalhoes')">[
+                    ESTRUTURAS / LOTAÇÕES ]</button>
+
+                <p class="menu-label mt-15">SUPERVISÃO E AUDITORIA</p>
+                <button class="menu-btn font-mono" id="btn-aba-solicitacoes" onclick="mudarAbaAdmin('aba-solicitacoes')"
+                    style="color: var(--success-green);">[ DESPACHOS CORREGEDORIA ]</button>
+                <button class="menu-btn font-mono" id="btn-aba-auditoria" onclick="mudarAbaAdmin('aba-auditoria')">[
+                    ARQUIVOS DA REDE ]</button>
+                <button class="menu-btn font-mono" id="btn-aba-logs" onclick="mudarAbaAdmin('aba-logs')"
+                    style="color: #94a3b8;">[ LOGS DO SISTEMA ]</button>
+            </nav>
+        </aside>
+
+        <main class="main-content">
+            <header class="topbar">
+                <div class="topbar-esq"><span class="badge font-mono"
+                        style="background: var(--admin-gold); color: #000;">MASTER CORE</span>
+                    <h2 class="nome-oficial-topbar" id="topbar-nome-admin" style="color: var(--admin-gold);">
+                        CARREGANDO...</h2>
+                </div>
+                <div class="topbar-dir"><button class="btn-sair font-mono" onclick="deslogarSistema()">[ DESCONECTAR
+                        REDE ]</button></div>
+            </header>
+
+            <div class="area-trabalho" id="aba-dashboard">
+                <div class="cabecalho-documento" style="border-bottom-color: var(--admin-gold);">
+                    <h3 style="color: var(--admin-gold);">VISÃO GERAL DO SISTEMA</h3>
+                </div>
+                <div class="stats-grid">
+                    <div class="stat-card"><span class="stat-valor" id="stat-efetivo">0</span><span
+                            class="stat-label">Policiais Registrados</span></div>
+                    <div class="stat-card"><span class="stat-valor" id="stat-civis"
+                            style="color: var(--success-green);">0</span><span class="stat-label">Civis
+                            Registrados</span></div>
+                    <div class="stat-card"><span class="stat-valor" id="stat-batalhoes">0</span><span
+                            class="stat-label">Lotações</span></div>
+                    <div class="stat-card"><span class="stat-valor" id="stat-boletins">0</span><span
+                            class="stat-label">Boletins Emitidos</span></div>
+                </div>
+                <div class="form-grid mt-25">
+                    <div class="form-painel"
+                        style="border-color: var(--bombeiro-red); background: rgba(220, 38, 38, 0.05);">
+                        <h4 class="form-section-title" style="color: var(--bombeiro-red);">CONTROLE DA TROPA</h4>
+                        <p style="font-size: 11px; color: #cbd5e1; margin-bottom: 15px;">Bloqueia o acesso de todos os
+                            Policiais e Civis (Apenas ADMIN loga).</p>
+                        <button id="btn-toggle-manutencao" class="btn-toggle-manutencao font-mono"
+                            onclick="alternarManutencao()">[ DESATIVAR REDE DA TROPA ]</button>
+                    </div>
+                    <div class="form-painel"
+                        style="border-color: var(--pm-blue); background: rgba(56, 189, 248, 0.05);">
+                        <h4 class="form-section-title" style="color: var(--pm-blue);">DIAGNÓSTICO DE WEBHOOKS</h4>
+                        <p style="font-size: 11px; color: #cbd5e1; margin-bottom: 15px;">Teste todas as rotas do Discord
+                            para verificar se os links estão operantes.</p>
+                        <button class="btn-entrar font-mono"
+                            style="background: var(--pm-blue); color: #000; border: none;"
+                            onclick="abrirModalTesteWebhook()">[ INICIAR DISPAROS DE TESTE ]</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="area-trabalho hidden" id="aba-efetivo">
+                <div class="cabecalho-documento"
+                    style="border-bottom-color: var(--admin-gold); display: flex; justify-content: space-between; align-items: center;">
+                    <div>
+                        <h3 style="color: var(--admin-gold);">CIDADÃOS E EFETIVO</h3>
+                        <p>Gerenciamento de contas, suspensões e registros.</p>
+                    </div><button class="btn-entrar font-mono" style="width: auto; padding: 10px 20px;"
+                        onclick="abrirModalUsuario()">[ + EMITIR CREDENCIAL ]</button>
+                </div>
+                <div class="filtros-efetivo"><button class="btn-filtro ativo font-mono"
+                        onclick="setFiltro('TODOS', this)">[ TODOS ]</button><button class="btn-filtro font-mono"
+                        onclick="setFiltro('CIVIL', this)"
+                        style="color: var(--success-green); border-color: var(--success-green);">[ CIDADÃOS
+                        ]</button><button class="btn-filtro font-mono" onclick="setFiltro('PM', this)">[ PMESP
+                        ]</button><button class="btn-filtro font-mono" onclick="setFiltro('PC', this)">[ PCSP
+                        ]</button><button class="btn-filtro font-mono" onclick="setFiltro('PF', this)">[ POLÍCIA FEDERAL
+                        ]</button><button class="btn-filtro font-mono" onclick="setFiltro('PRF', this)">[ PRF
+                        ]</button><button class="btn-filtro font-mono" onclick="setFiltro('BOMBEIRO', this)">[ CBMESP
+                        ]</button><button class="btn-filtro font-mono" onclick="setFiltro('ADMIN', this)">[ ALTO COMANDO
+                        ]</button></div>
+                <div class="caixa-busca-historico"><input type="text" id="busca-efetivo" class="input-busca font-mono"
+                        placeholder="Pesquisar por Nome, ID ou Lotação..." onkeyup="renderizarEfetivo()"></div>
+                <div class="lista-efetivo-grid" id="lista-efetivo"></div>
+            </div>
+
+            <div class="area-trabalho hidden" id="aba-batalhoes">
+                <div class="cabecalho-documento" style="border-bottom-color: var(--admin-gold);">
+                    <h3 style="color: var(--admin-gold);">LOTAÇÕES REGISTRADAS</h3>
+                </div>
+                <div class="form-painel" style="max-width: 600px;">
+                    <div class="input-group"><label>Nome da Nova Estrutura</label><input type="text"
+                            id="novo-batalhao-nome" placeholder="Ex: 5º BAEP"></div><button class="btn-entrar font-mono"
+                        onclick="adicionarBatalhao()">[ ADICIONAR ESTRUTURA ]</button>
+                </div>
+                <div class="grid-batalhoes mt-25" id="lista-batalhoes"></div>
+            </div>
+
+            <div class="area-trabalho hidden" id="aba-solicitacoes">
+                <div class="cabecalho-documento" style="border-bottom-color: var(--success-green);">
+                    <h3 style="color: var(--success-green);">CORREGEDORIA: DESPACHOS PENDENTES</h3>
+                </div>
+                <div id="lista-solicitacoes"></div>
+            </div>
+
+            <div class="area-trabalho hidden" id="aba-auditoria">
+                <div class="cabecalho-documento" style="border-bottom-color: var(--admin-gold);">
+                    <h3 style="color: var(--admin-gold);">AUDITORIA DE BOLETINS DA REDE</h3>
+                </div>
+                <div class="caixa-busca-historico"><input type="text" id="busca-auditoria" class="input-busca font-mono"
+                        placeholder="Consultar protocolos, agentes ou civis envolvidos..."
+                        onkeyup="renderizarAuditoria()"></div>
+                <div id="lista-auditoria"></div>
+            </div>
+
+            <div class="area-trabalho hidden" id="aba-logs">
+                <div class="cabecalho-documento" style="border-bottom-color: #94a3b8;">
+                    <h3 style="color: #94a3b8;">LOGS DO SISTEMA</h3>
+                    <p>Auditoria invisível de todas as ações.</p>
+                </div>
+                <div class="filtros-efetivo" style="margin-bottom: 15px;"><button class="btn-filtro ativo font-mono"
+                        id="log-TODOS" onclick="setFiltroLog('TODOS', this)">[ TODOS ]</button><button
+                        class="btn-filtro font-mono" id="log-LOGIN" onclick="setFiltroLog('LOGIN', this)">[ AUTENTICAÇÃO
+                        ]</button><button class="btn-filtro font-mono" id="log-BOLETIM"
+                        onclick="setFiltroLog('BOLETIM', this)">[ OCORRÊNCIAS ]</button><button
+                        class="btn-filtro font-mono" id="log-DETRAN" onclick="setFiltroLog('DETRAN', this)">[ TRÂNSITO
+                        ]</button><button class="btn-filtro font-mono" id="log-SISTEMA"
+                        onclick="setFiltroLog('SISTEMA', this)">[ GESTÃO ADMIN ]</button></div><input type="text"
+                    id="busca-logs-admin" class="input-busca font-mono" style="margin-bottom: 20px;"
+                    placeholder="Buscar em logs..." onkeyup="renderizarLogsAdmin()">
+                <div id="lista-logs-sistema" style="max-height: 600px; overflow-y: auto;"></div>
+            </div>
+        </main>
+    </div>
+
+    <div id="modal-cad-usuario" class="modal-overlay hidden">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="titulo-modal-user" class="font-mono">EMITIR CREDENCIAL</h3><button class="btn-fechar-modal"
+                    onclick="fecharModalUsuario()">[ X ]</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-grid">
+                    <div class="input-group"><label>Passaporte</label><input type="text" id="cad-user-pass"
+                            maxlength="4" oninput="this.value = this.value.replace(/[^0-9]/g, '')"></div>
+                    <div class="input-group"><label>Senha Numérica</label><input type="password" id="cad-user-pin">
+                    </div>
+                </div>
+                <div class="form-grid">
+                    <div class="input-group"><label>Pós-Senha (Apenas Master)</label><input type="password"
+                            id="cad-user-pos"></div>
+                    <div class="input-group"><label>Nome (In-game)</label><input type="text" id="cad-user-nome"></div>
+                </div>
+                <div class="form-grid">
+                    <div class="input-group"><label>Corporação / Tipo</label><select id="cad-user-tipo"
+                            onchange="document.getElementById('cad-user-pos').disabled = (this.value !== 'ADMIN')">
+                            <option value="PM">PMESP</option>
+                            <option value="PC">PCSP</option>
+                            <option value="BOMBEIRO">CBMESP</option>
+                            <option value="PF">POLÍCIA FEDERAL</option>
+                            <option value="PRF">PRF</option>
+                            <option value="ADMIN">COMANDO MASTER (ADMIN)</option>
+                        </select></div>
+                    <div class="input-group"><label>Patente / Cargo</label><input type="text" id="cad-user-patente"
+                            placeholder="Ex: SD"></div>
+                </div>
+                <div class="input-group"><label>Lotação Específica</label><input type="text" id="cad-user-corp"
+                        placeholder="Ex: ROTA, CHOQUE..."></div>
+                <div class="input-group"><label>URL da Foto (Discord ou Imgur)</label><input type="text"
+                        id="cad-user-foto" placeholder="Deixe em branco para usar o brasão padrão"></div>
+            </div>
+            <div class="modal-footer"><button class="btn-entrar btn-azul font-mono" onclick="salvarUsuario()">[ GRAVAR
+                    NA REDE ]</button></div>
+        </div>
+    </div>
+
+    <div id="modal-perfil-usuario" class="modal-overlay hidden">
+        <div class="modal-content" style="max-width: 500px;">
+            <div class="modal-header">
+                <h3 class="font-mono">FICHA DE VERIFICAÇÃO</h3><button class="btn-fechar-modal"
+                    onclick="document.getElementById('modal-perfil-usuario').classList.add('hidden')">[ X ]</button>
+            </div>
+            <div class="modal-body">
+                <div id="conteudo-perfil-usuario"></div>
+            </div>
+        </div>
+    </div>
+
+    <div id="modal-teste-webhook" class="modal-overlay hidden">
+        <div class="modal-content" style="max-width: 500px;">
+            <div class="modal-header" style="background: #0f172a; border-bottom: 2px solid var(--pm-blue);">
+                <h3 class="font-mono" style="color: var(--pm-blue);">[ ⚙️ DIAGNÓSTICO DE REDE DISCORD ]</h3>
+                <button class="btn-fechar-modal font-mono"
+                    onclick="document.getElementById('modal-teste-webhook').classList.add('hidden')">[ X ]</button>
+            </div>
+            <div class="modal-body">
+                <p style="font-size: 11px; color: #cbd5e1; margin-bottom: 20px; line-height: 1.5;">Esta ferramenta
+                    disparará um pacote para **TODAS** as Webhooks para testar a comunicação externa.</p>
+                <div class="form-painel" style="background: #05070a; border-color: #1e293b;">
+                    <div id="log-testes-webhooks"
+                        style="font-family: 'JetBrains Mono', monospace; font-size: 10px; color: #64748b; height: 150px; overflow-y: auto; background: #000; padding: 10px; margin-bottom: 15px; border-radius: 3px; border: 1px solid #1e293b;">
+                        > Aguardando inicialização do teste...</div>
+                    <button class="btn-entrar font-mono"
+                        style="background: var(--pm-blue); color: #fff; border: none; width: 100%;"
+                        onclick="dispararTesteWebhooks()">[ INICIAR DISPARO DE TESTES ]</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="modal-boletim" class="modal-overlay hidden">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="modal-protocolo" class="font-mono">BOCB</h3>
+                <button class="btn-fechar-modal"
+                    onclick="document.getElementById('modal-boletim').classList.add('hidden')">[ X ]</button>
+            </div>
+            <div class="modal-body">
+                <div id="conteudo-modal-dinamico"></div>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/app.js"></script>
+</body>
+
+</html>

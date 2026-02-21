@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>S.I.G.O. | Terminal Tático</title>
+    <link rel="icon" href="https://cdn-icons-png.flaticon.com/512/2566/2566144.png" type="image/png">
+    <link rel="stylesheet" href="css/style.css">
+</head>
+
+<body class="body-painel" onload="carregarDadosPainel()">
+
+    <div id="alerta-procurado-global" class="hidden"
+        style="position: fixed; top: 0; left: 0; width: 100%; background: #b91c1c; color: #fff; text-align: center; padding: 15px; font-family: 'JetBrains Mono', monospace; font-weight: 900; letter-spacing: 2px; z-index: 9999; box-shadow: 0 5px 25px rgba(185, 28, 28, 0.8); animation: piscarAlerta 1s infinite;">
+        [!!!] ATENÇÃO: O INDIVÍDUO CONSULTADO POSSUI MANDADO DE PRISÃO ATIVO [!!!]</div>
+    <style>
+        @keyframes piscarAlerta {
+            0% {
+                background: #b91c1c;
+            }
+
+            50% {
+                background: #7f1d1d;
+            }
+
+            100% {
+                background: #b91c1c;
+            }
+        }
+
+        @keyframes pulseQRR {
+            0% {
+                transform: scale(1);
+                box-shadow: 0 0 0 0 rgba(220, 38, 38, 0.7);
+            }
+
+            70% {
+                transform: scale(1.05);
+                box-shadow: 0 0 0 10px rgba(220, 38, 38, 0);
+            }
+
+            100% {
+                transform: scale(1);
+                box-shadow: 0 0 0 0 rgba(220, 38, 38, 0);
+            }
+        }
+    </style>
+
+    <div id="autosave-indicator" class="autosave-indicator font-mono hidden">[SYS] RASCUNHO SALVO NO CACHE LOCAL</div>
+
+    <div class="dashboard-layout" id="main-container">
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <h1 class="titulo-sigo-pequeno">S.I.G.O.</h1>
+                <p class="subtitulo-sidebar">Terminal Operacional</p>
+            </div>
+            <nav class="sidebar-menu">
+                <p class="menu-label">MÓDULO DE OCORRÊNCIA</p>
+                <button class="menu-btn ativo font-mono" id="btn-aba-novo-aph" onclick="mudarAba('aba-novo-aph')">[
+                    BOLETIM / APH ]</button>
+                <button class="menu-btn font-mono" id="btn-aba-historico" onclick="mudarAba('aba-historico')">[ ARQUIVO
+                    LOCAL ]</button>
+                <p class="menu-label mt-15">MÓDULO TÁTICO & INVESTIGATIVO</p>
+                <button class="menu-btn font-mono" id="btn-aba-uso-forca" onclick="mudarAba('aba-uso-forca')">[
+                    RELATÓRIO RUF ]</button>
+                <button class="menu-btn font-mono" id="btn-aba-mandados" onclick="mudarAba('aba-mandados')"
+                    style="color: #fca5a5;">[ MANDADOS DE PRISÃO ]</button>
+                <p class="menu-label mt-15" style="color: var(--detran-green);">SISTEMA NACIONAL DE TRÂNSITO</p>
+                <button class="menu-btn font-mono" id="btn-aba-detran" onclick="mudarAba('aba-detran')">[ CONSULTA /
+                    S.N.T. ]</button>
+                <p class="menu-label mt-15" style="color: var(--gov-light);">SISTEMAS FEDERAIS / GOV</p>
+                <button class="menu-btn font-mono" id="btn-aba-delegacia-policia"
+                    onclick="mudarAba('aba-delegacia-policia')" style="color: #38bdf8;">[ DELEGACIA ELETRÔNICA
+                    ]</button>
+                <button class="menu-btn font-mono" id="btn-aba-licencas" onclick="mudarAba('aba-licencas')">[
+                    DOCUMENTAÇÃO / CRAF ]</button>
+            </nav>
+        </aside>
+
+        <main class="main-content">
+            <header class="topbar">
+                <div class="topbar-esq"><span class="badge font-mono" id="topbar-badge">CBMESP</span>
+                    <h2 class="nome-oficial-topbar" id="topbar-nome">CARREGANDO...</h2>
+                </div>
+                <div class="topbar-dir" style="display: flex; gap: 10px; align-items: center;">
+                    <button class="badge font-mono"
+                        style="cursor: pointer; padding: 10px 18px; border: none; font-size: 10px; background: #dc2626; color: #fff; font-weight: 900; letter-spacing: 2px; animation: pulseQRR 2s infinite;"
+                        onclick="acionarQRR()">[ BOTÃO DE PÂNICO / QRR ]</button>
+
+                    <button class="badge badge-pm qap font-mono"
+                        style="cursor: pointer; padding: 10px 18px; border: none; font-size: 10px;"
+                        id="btn-status-servico" onclick="trocarStatus()">[ QAP ] EM SERVIÇO</button>
+                    <button class="btn-sair font-mono" onclick="deslogarSistema()">[ DESCONECTAR ]</button>
+                </div>
+            </header>
+
+            <div class="area-trabalho" id="aba-novo-aph">
+                <div class="cabecalho-documento">
+                    <h3 style="color: var(--pm-light);">BOLETIM DE OCORRÊNCIA (BO/APH)</h3>
+                    <p>Os Boletins Oficiais gerarão um Arquivo de Relatório (.txt) anexado automaticamente ao Discord da
+                        DP.</p>
+                </div>
+                <div class="form-painel">
+                    <h4 class="form-section-title">1. DADOS DA GUARNIÇÃO</h4>
+                    <div class="form-grid">
+                        <div class="input-group"><label>Oficial Redator</label><input type="text"
+                                id="aph-socorrista-nome" class="input-bloqueado" disabled></div>
+                        <div class="input-group"><label>Passaporte</label><input type="text" id="aph-socorrista-pass"
+                                class="input-bloqueado" disabled></div>
+                    </div>
+                    <div class="form-grid">
+                        <div class="input-group"><label>Prefixo da Viatura</label><input type="text" id="aph-viatura"
+                                placeholder="VTR-22" required></div>
+                        <div class="input-group"><label>Área de Patrulhamento</label><select id="aph-area" required>
+                                <option value="Centro">Região Central</option>
+                                <option value="Norte">Zona Norte / Vinewood</option>
+                                <option value="Sul">Zona Sul / Aeroporto</option>
+                                <option value="Rodovias">Rodovias</option>
+                            </select></div>
+                    </div>
+                    <h4 class="form-section-title mt-25">2. IDENTIFICAÇÃO DO ENVOLVIDO</h4>
+                    <div class="form-grid">
+                        <div class="input-group"><label>Nome Completo</label><input type="text" id="aph-vitima-nome"
+                                placeholder="'NÃO IDENTIFICADO'" required></div>
+                        <div class="input-group"><label>Passaporte (RG)</label><input type="text" id="aph-vitima-pass"
+                                maxlength="4" oninput="this.value = this.value.replace(/[^0-9]/g, '')"
+                                onblur="verificarMandadoPrisaoPainel(this.value)"></div>
+                    </div>
+                    <h4 class="form-section-title mt-25">3. NARRATIVA</h4>
+                    <div class="input-group"><label>Local Exato</label><input type="text" id="aph-local"
+                            placeholder="Av. Alta / Praça Central" required></div>
+                    <div class="input-group"><label>Relato Operacional Básico</label><textarea id="aph-relato"
+                            class="caixa-texto-media" placeholder="Descreva os fatos..."></textarea></div>
+                    <div class="input-group"><label>Desfecho / Providência</label><textarea id="aph-desfecho"
+                            class="caixa-texto-pequena" placeholder="Encaminhado ao DP, Preso, Liberado..."></textarea>
+                    </div>
+                    <button type="button" class="btn-ia mt-15 font-mono" id="btn-ia-aph"
+                        onclick="refinarRelatoIA('aph')">[ REFINAR RELATO (IA) ]</button>
+                    <div class="linha-divisoria"></div><button type="button" class="btn-entrar btn-azul font-mono"
+                        id="btn-transmitir" onclick="assinarEnviarBOCB()">[ ASSINAR E ENVIAR ARQUIVO AO DISCORD
+                        ]</button>
+                </div>
+            </div>
+
+            <div class="area-trabalho hidden" id="aba-historico">
+                <div class="cabecalho-documento">
+                    <h3 style="color: var(--pm-light);">ARQUIVO PESSOAL DE BOLETINS</h3>
+                </div>
+                <div class="caixa-busca-historico"><input type="text" id="busca-boletim" class="input-busca font-mono"
+                        placeholder="[ PESQUISAR ] Protocolo, envolvido, QTH..." onkeyup="filtrarBoletins()"></div>
+                <div id="lista-meus-boletins"></div>
+            </div>
+
+            <div class="area-trabalho hidden" id="aba-uso-forca">
+                <div class="cabecalho-documento">
+                    <h3 style="color: var(--bombeiro-red);">RELATÓRIO DE USO DA FORÇA (RUF)</h3>
+                    <p>Disparo de arma de fogo ou contenção severa.</p>
+                </div>
+                <div class="form-painel"
+                    style="border-top: 4px solid var(--bombeiro-red); background: rgba(127, 29, 29, 0.05);">
+                    <div class="form-grid">
+                        <div class="input-group"><label>Prefixo da Viatura</label><input type="text" id="ruf-viatura"
+                                placeholder="VTR-TÁTICO" required></div>
+                        <div class="input-group"><label>Localização</label><input type="text" id="ruf-local" required>
+                        </div>
+                    </div>
+                    <div class="form-grid">
+                        <div class="input-group"><label>Grau da Força</label><select id="ruf-nivel">
+                                <option value="NIVEL 1">Contenção Física</option>
+                                <option value="NIVEL 2">Menos Letal (Taser/Gás)</option>
+                                <option value="NIVEL 3">Força Letal (Arma de Fogo)</option>
+                            </select></div>
+                        <div class="input-group"><label>Total de Disparos</label><input type="number" id="ruf-disparos"
+                                placeholder="0"></div>
+                    </div>
+                    <div class="input-group mt-15"><label>Arma / Equipamento</label><input type="text" id="ruf-arma"
+                            placeholder="Pistola 9mm..." required></div>
+                    <div class="input-group mt-15"><label>Características do Alvo</label><textarea
+                            id="ruf-caracteristicas" class="caixa-texto-pequena"
+                            placeholder="Homem, camisa vermelha. Passaporte: 1234..." required></textarea></div>
+                    <div class="form-grid mt-15">
+                        <div class="input-group"><label>Lesões?</label><select id="ruf-lesoes">
+                                <option value="NENHUMA LESÃO">Nenhuma</option>
+                                <option value="NO OPOSITOR">No opositor</option>
+                                <option value="NA GUARNIÇÃO">Na guarnição</option>
+                            </select></div>
+                        <div class="input-group"><label>Socorro prestado?</label><select id="ruf-socorro">
+                                <option value="SIM">Sim</option>
+                                <option value="NÃO">Não</option>
+                                <option value="ÓBITO LOCAL">Óbito</option>
+                            </select></div>
+                    </div>
+                    <div class="input-group mt-15"><label>Dinâmica</label><textarea id="ruf-relato"
+                            class="caixa-texto-media" required></textarea></div><button type="button"
+                        class="btn-ia mt-15 font-mono" id="btn-ia-ruf"
+                        style="background: linear-gradient(90deg, var(--bombeiro-dark) 0%, var(--bombeiro-red) 100%); border-color: var(--bombeiro-red);"
+                        onclick="refinarRelatoIA('ruf')">[ GERAR LAUDO (IA) ]</button>
+                    <div class="linha-divisoria" style="background: rgba(239, 68, 68, 0.2);"></div><button type="button"
+                        class="btn-entrar btn-vermelho font-mono" id="btn-transmitir-ruf" onclick="assinarEnviarRUF()">[
+                        REGISTRAR E ENVIAR ARQUIVO AO DISCORD ]</button>
+                </div>
+            </div>
+
+            <div class="area-trabalho hidden" id="aba-mandados">
+                <div class="cabecalho-documento" style="border-bottom-color: #ef4444;">
+                    <h3 style="color: #fca5a5;">SISTEMA DE MANDADOS DE PRISÃO E BUSCA</h3>
+                </div>
+                <div class="form-grid">
+                    <div class="form-painel" style="border-color: #ef4444; background: rgba(239, 68, 68, 0.05);"
+                        id="painel-emitir-mandado">
+                        <h4 class="form-section-title" style="color: #fca5a5;">EXPEDIR MANDADO DE PRISÃO</h4>
+                        <div class="input-group"><label>Passaporte do Alvo (ID)</label><input type="text"
+                                id="mandado-passaporte" maxlength="4"
+                                oninput="this.value = this.value.replace(/[^0-9]/g, '')"></div>
+                        <div class="input-group mt-15"><label>Motivação Criminal (Artigos / Crimes)</label><textarea
+                                id="mandado-motivo" class="caixa-texto-pequena"></textarea></div>
+                        <div class="input-group mt-15"><label>Nível de Periculosidade</label><select id="mandado-perigo"
+                                style="border-color: #ef4444;">
+                                <option value="BAIXO">BAIXO Risco</option>
+                                <option value="ALTO">ALTO Risco (Armado)</option>
+                            </select></div><button class="btn-entrar btn-vermelho font-mono mt-15"
+                            onclick="expedirMandadoPrisao()">[ INSERIR NA LISTA ]</button>
+                    </div>
+                    <div>
+                        <h4 class="form-section-title" style="color: #fca5a5; margin-bottom: 15px;">PROCURADOS ATIVOS NO
+                            ESTADO</h4>
+                        <div id="lista-procurados-ativos"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="area-trabalho hidden" id="aba-detran">
+                <div class="cabecalho-documento" style="border-bottom-color: var(--detran-green);">
+                    <h3 style="color: var(--detran-green);">SISTEMA NACIONAL DE TRÂNSITO (DETRAN)</h3>
+                </div>
+                <div class="filtros-efetivo" style="margin-bottom: 30px;"><button class="btn-filtro ativo font-mono"
+                        id="btn-sub-consulta" onclick="mudarSubAbaDetran('consulta')">[ FISCALIZAR VEÍCULO
+                        ]</button><button class="btn-filtro font-mono" id="btn-sub-registro"
+                        onclick="mudarSubAbaDetran('registro')">[ REGISTRAR VEÍCULO ]</button><button
+                        class="btn-filtro font-mono" id="btn-sub-pagamentos" onclick="mudarSubAbaDetran('pagamentos')"
+                        style="color: var(--warning-yellow); border-color: var(--warning-yellow);">[ GERENCIAR
+                        PAGAMENTOS ]</button></div>
+                <div id="sub-detran-consulta">
+                    <div class="input-group" style="max-width: 600px;"><input type="text" id="busca-placa-detran"
+                            class="input-busca font-mono"
+                            style="border-color: var(--detran-green); margin-bottom: 10px;"
+                            placeholder="[ SINESP ] Digite a PLACA..."><button class="btn-entrar font-mono"
+                            style="background: var(--detran-green); color: #fff; border: none;"
+                            onclick="consultarPlacaPolicial()">[ PUXAR DADOS DO VEÍCULO ]</button></div>
+                    <div id="resultado-placa-policia" class="hidden mt-25">
+                        <div class="form-painel" style="border-top: 4px solid var(--detran-green);">
+                            <div
+                                style="display: flex; gap: 30px; align-items: center; margin-bottom: 25px; border-bottom: 1px solid #1e293b; padding-bottom: 20px;">
+                                <div class="placa-veiculo">
+                                    <div class="placa-header"><span>BRASIL</span></div>
+                                    <div class="placa-numero" id="res-placa">ABC1D23</div>
+                                </div>
+                                <div>
+                                    <p class="label-pequena">PROPRIETÁRIO LEGAL</p>
+                                    <h4 class="nome-destaque" id="res-proprietario">NOME</h4>
+                                    <p class="font-mono mt-5" style="font-size: 11px; color: #94a3b8;" id="res-modelo">
+                                        Modelo/Cor</p>
+                                    <div id="res-status-badge"></div>
+                                </div>
+                            </div>
+                            <h4 class="form-section-title" style="color: var(--pm-light);">LAVRAR AUTO DE INFRAÇÃO</h4>
+                            <div class="form-grid">
+                                <div class="input-group"><label>Tipificação / Motivo</label><input type="text"
+                                        id="autuacao-motivo"></div>
+                                <div class="input-group"><label>Valor (R$)</label><input type="number"
+                                        id="autuacao-valor" min="0"></div>
+                            </div>
+                            <div class="input-group mt-15"><label style="color: var(--warning-yellow);">Apreensão
+                                    Administrativa?</label><select id="autuacao-apreensao">
+                                    <option value="NAO">NÃO</option>
+                                    <option value="SIM">SIM - Pátio</option>
+                                </select></div><button class="btn-entrar btn-vermelho font-mono mt-15"
+                                onclick="aplicarAutuacaoVeiculo()">[ CONFIRMAR AUTO DE INFRAÇÃO ]</button><button
+                                class="btn-neutro font-mono mt-15"
+                                style="width: 100%; border-color: var(--success-green); color: var(--success-green);"
+                                onclick="liberarVeiculoPatio()" id="btn-liberar-patio">[ LIBERAR VEÍCULO DO PÁTIO
+                                ]</button>
+                        </div>
+                    </div>
+                </div>
+                <div id="sub-detran-registro" class="hidden">
+                    <div class="form-painel" style="max-width: 600px;">
+                        <h4 class="form-section-title" style="color: var(--detran-green);">VINCULAR NOVO VEÍCULO</h4>
+                        <div class="form-grid">
+                            <div class="input-group"><label>Passaporte Proprietário</label><input type="text"
+                                    id="reg-veiculo-passaporte"></div>
+                            <div class="input-group"><label>Placa</label><input type="text" id="reg-veiculo-placa"
+                                    maxlength="7"></div>
+                        </div>
+                        <div class="form-grid">
+                            <div class="input-group"><label>Modelo</label><input type="text" id="reg-veiculo-modelo">
+                            </div>
+                            <div class="input-group"><label>Cor</label><input type="text" id="reg-veiculo-cor"></div>
+                        </div><button class="btn-entrar font-mono mt-15"
+                            style="background: var(--detran-green); color: #fff; border: none;"
+                            onclick="registrarVeiculoBanco()">[ PROCESSAR REGISTRO ]</button>
+                    </div>
+                </div>
+                <div id="sub-detran-pagamentos" class="hidden">
+                    <div class="form-painel"
+                        style="max-width: 800px; border-color: var(--warning-yellow); background: rgba(217, 119, 6, 0.05);">
+                        <h4 class="form-section-title" style="color: var(--warning-yellow);">PAGAMENTO DE MULTAS</h4>
+                        <div id="lista-multas-analise"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="area-trabalho hidden" id="aba-delegacia-policia">
+                <div class="cabecalho-documento" style="border-bottom-color: #38bdf8;">
+                    <h3 style="color: #38bdf8;">CENTRAL DA DELEGACIA ELETRÔNICA</h3>
+                </div>
+                <div id="lista-bos-civis-analise"></div>
+            </div>
+
+            <div class="area-trabalho hidden" id="aba-licencas">
+                <div class="cabecalho-documento" style="border-bottom-color: var(--gov-light);">
+                    <h3 style="color: var(--gov-light);">DEPARTAMENTO DE EMISSÃO DE LICENÇAS E C.R.A.F.</h3>
+                </div>
+                <div class="form-grid">
+                    <div class="form-painel" style="border-color: #38bdf8; background: rgba(56, 189, 248, 0.05);"
+                        id="painel-emitir-licenca">
+                        <h4 class="form-section-title" style="color: #38bdf8;">EMITIR NOVA LICENÇA / CRAF</h4>
+                        <div class="input-group"><label>Passaporte (ID)</label><input type="text"
+                                id="licenca-passaporte" maxlength="4"></div>
+                        <div class="input-group mt-15"><label>Tipo de Documento</label><select id="licenca-tipo"
+                                style="border-color: rgba(56, 189, 248, 0.4);"
+                                onchange="document.getElementById('campos-arma-extra').style.display = this.value.includes('PORTE') ? 'grid' : 'none';">
+                                <option value="PORTE DE ARMA (PF)">Porte de Arma de Fogo</option>
+                                <option value="PORTE DE CAÇA">Licença de Caça</option>
+                                <option value="ALVARÁ COMERCIAL">Alvará Comercial</option>
+                            </select></div>
+                        <div id="campos-arma-extra" class="form-grid mt-15" style="display: grid;">
+                            <div class="input-group" style="margin-bottom: 0;"><label>Armamento</label><input
+                                    type="text" id="licenca-arma" style="border-color: #38bdf8;"></div>
+                            <div class="input-group" style="margin-bottom: 0;"><label>Limite de Munição</label><input
+                                    type="number" id="licenca-municao" style="border-color: #38bdf8;" min="0"></div>
+                        </div>
+                        <div class="input-group mt-15"><label>Validade</label><input type="date" id="licenca-validade"
+                                style="border-color: rgba(56, 189, 248, 0.4);"></div>
+                        <div class="input-group mt-15"><label>Laudo</label><textarea id="licenca-obs"
+                                class="caixa-texto-pequena"></textarea></div><button class="btn-entrar font-mono mt-15"
+                            style="background: var(--gov-light); color: #000; border: none;"
+                            onclick="emitirLicencaCivil()">[ AUTENTICAR DOCUMENTO ]</button>
+                    </div>
+                    <div class="form-painel" style="border-color: #334155;" id="painel-buscar-licenca">
+                        <h4 class="form-section-title" style="color: #f8fafc;">CIVIS LICENCIADOS</h4><input type="text"
+                            id="busca-licencas" class="input-busca font-mono"
+                            style="padding: 10px; font-size: 10px; margin-bottom: 15px;" placeholder="Pesquisar ID..."
+                            onkeyup="renderizarLicencasPainel()">
+                        <div id="lista-licencas-ativas" style="max-height: 480px; overflow-y: auto;"></div>
+                    </div>
+                </div>
+            </div>
+
+        </main>
+    </div>
+
+    <div id="modal-boletim" class="modal-overlay hidden">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="modal-protocolo" class="font-mono">BOCB</h3>
+                <button class="btn-fechar-modal"
+                    onclick="document.getElementById('modal-boletim').classList.add('hidden')">[ X ]</button>
+            </div>
+            <div class="modal-body">
+                <div id="conteudo-modal-dinamico"></div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-neutro font-mono" style="color:var(--warning-yellow);"
+                    onclick="solicitarAlteracao('EDICAO')">[ SOLICITAR EDIÇÃO AO COMANDO ]</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/app.js"></script>
+</body>
+
+</html>
