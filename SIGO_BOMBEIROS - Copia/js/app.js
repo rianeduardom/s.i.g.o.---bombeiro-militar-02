@@ -1,387 +1,2021 @@
-/* =========================================
-   SIGO - CÉREBRO CENTRAL UNIFICADO (APP.JS)
-   Versão 26.0 (Fotos Civis, QRR, File Attach)
-========================================= */
-
-(function aplicarCorrecoesVisuais() {
-    if (!document.getElementById("style-correcoes-sigo")) {
-        const style = document.createElement("style"); style.id = "style-correcoes-sigo";
-        style.innerHTML = `
-            select, input[type="date"], input[type="number"], input[type="datetime-local"] { background-color: #080b12 !important; border: 1px solid #1e293b !important; color: #f8fafc !important; padding: 12px !important; border-radius: 4px !important; font-family: 'JetBrains Mono', monospace !important; font-size: 11px !important; box-shadow: inset 0 2px 4px rgba(0,0,0,0.5); transition: border-color 0.3s; }
-            select:focus, input[type="date"]:focus, input[type="datetime-local"]:focus { border-color: var(--pm-blue) !important; outline: none; }
-            #conteudo-modal-dinamico { background: #f1f5f9; padding: 30px; border-radius: 4px; border: 2px solid #cbd5e1; box-shadow: 0 10px 25px rgba(0,0,0,0.5); color: #0f172a; font-family: 'Arial', sans-serif; background-image: radial-gradient(#cbd5e1 1px, transparent 0); background-size: 20px 20px; }
-            .titulo-detalhe { background: #e2e8f0; padding: 8px 12px; margin-bottom: 15px; border-left: 4px solid var(--pm-blue); font-size: 12px; font-weight: 800; letter-spacing: 1px; text-transform: uppercase; } .titulo-detalhe.txt-vermelho { color: #7f1d1d; border-left-color: #b91c1c; background: #fecaca; }
-            .caixa-texto-leitura { background: #fff; border: 1px solid #cbd5e1; padding: 15px; border-radius: 3px; font-size: 12px; line-height: 1.6; color: #334155; margin-bottom: 20px; white-space: pre-wrap; }
-            .card-boletim { background: #080b12; border-left: 4px solid var(--pm-blue); padding: 15px; margin-bottom: 10px; border-radius: 4px; border-top: 1px solid #1e293b; border-right: 1px solid #1e293b; border-bottom: 1px solid #1e293b; cursor: pointer; transition: 0.2s; }
-            .card-boletim:hover { background: #0f172a; transform: translateX(5px); }
-            .card-topo { display: flex; justify-content: space-between; margin-bottom: 8px; align-items: center; } .card-titulo { font-size: 13px; font-weight: 800; color: #f8fafc; letter-spacing: 1px; } .card-data { font-size: 10px; color: #64748b; font-family: 'JetBrains Mono', monospace; } .card-detalhe { font-size: 11px; color: #cbd5e1; margin-bottom: 3px; font-family: 'JetBrains Mono', monospace; }
-            .log-card { background:#080b12; border-top: 1px solid #1e293b; border-right: 1px solid #1e293b; border-bottom: 1px solid #1e293b; padding:15px; margin-bottom:10px; border-radius:3px; display:flex; justify-content:space-between; align-items:center; transition:0.3s; }
-            .log-cat-ADMIN { border-left: 4px solid var(--admin-gold); } .log-cat-CIVIL { border-left: 4px solid var(--success-green); } .log-cat-POLICIA { border-left: 4px solid var(--pm-blue); } .log-cat-SISTEMA { border-left: 4px solid var(--bombeiro-red); } .form-grid-full { grid-column: 1 / -1 !important; }
-        `; document.head.appendChild(style);
+/* S.I.G.O. V-BETA OFICIAL - NÚCLEO E CIVIL */
+(function injetarDependencias() {
+    if (!window.html2canvas) {
+        const s = document.createElement("script");
+        s.src = "https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js";
+        document.head.appendChild(s);
     }
+    const st = document.createElement("style");
+    st.innerHTML = `select,input[type="date"],input[type="number"],input[type="datetime-local"]{background-color:#080b12 !important;border:1px solid #1e293b !important;color:#f8fafc !important;padding:12px !important;border-radius:4px !important;font-family:'JetBrains Mono',monospace !important;font-size:11px !important;} .card-boletim{background:#080b12;border-left:4px solid var(--pm-blue);padding:15px;margin-bottom:10px;border-radius:4px;border:1px solid #1e293b;cursor:pointer;transition:0.2s;}.card-boletim:hover{background:#0f172a;transform:translateX(5px);}`;
+    document.head.appendChild(st);
 })();
-
-// =========================================================================
-// 2. CONFIGURAÇÕES E WEBHOOKS
-// =========================================================================
 const WEBHOOKS = {
-    GERAL: "https://discord.com/api/webhooks/1474066753720942829/qNag-FV5QH1BhgczVF2TgCvOVJ16aLNYtM4OyeRfMcq8VDlhik4Sarzdm4iwaEKO_ctO",
-    APH: "https://discord.com/api/webhooks/1474066753720942829/qNag-FV5QH1BhgczVF2TgCvOVJ16aLNYtM4OyeRfMcq8VDlhik4Sarzdm4iwaEKO_ctO",
-    RUF: "https://discord.com/api/webhooks/1474066753720942829/qNag-FV5QH1BhgczVF2TgCvOVJ16aLNYtM4OyeRfMcq8VDlhik4Sarzdm4iwaEKO_ctO",
-    CORREGEDORIA: "https://discord.com/api/webhooks/1474066753720942829/qNag-FV5QH1BhgczVF2TgCvOVJ16aLNYtM4OyeRfMcq8VDlhik4Sarzdm4iwaEKO_ctO",
-    INVESTIGACAO: "https://discord.com/api/webhooks/1474066753720942829/qNag-FV5QH1BhgczVF2TgCvOVJ16aLNYtM4OyeRfMcq8VDlhik4Sarzdm4iwaEKO_ctO",
-    DETRAN: "https://discord.com/api/webhooks/1474066753720942829/qNag-FV5QH1BhgczVF2TgCvOVJ16aLNYtM4OyeRfMcq8VDlhik4Sarzdm4iwaEKO_ctO",
-    FINANCEIRO: "https://discord.com/api/webhooks/1474066753720942829/qNag-FV5QH1BhgczVF2TgCvOVJ16aLNYtM4OyeRfMcq8VDlhik4Sarzdm4iwaEKO_ctO"
+    GERAL: "SEU_LINK_AQUI",
+    APH: "SEU_LINK_AQUI",
+    RUF: "SEU_LINK_AQUI",
+    CORREGEDORIA: "SEU_LINK_AQUI",
+    INVESTIGACAO: "SEU_LINK_AQUI",
+    DETRAN: "SEU_LINK_AQUI",
+    FINANCEIRO: "SEU_LINK_AQUI",
+    WIPE: "SEU_LINK_AQUI",
 };
-
-const BOT_CONFIG = {
-    NOME: "S.I.G.O. | Governo do Estado",
-    // Link do brasão atualizado (inquebrável)
-    FOTO: "https://br.freepik.com/icone/capacete-bombeiro_10581811#fromView=search&page=1&position=0&uuid=21fec100-d2f6-4642-b7e1-d83672d40a21",
-    RODAPE: "Secretaria de Segurança Pública", FOTO_RODAPE: "https://cdn-icons-png.flaticon.com/512/103/103085.png"
+const DEFAULT_CONFIG = {
+    sigla: "S.I.G.O.",
+    nome: "Secretaria de Segurança Pública",
+    brasao: "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c2/Bras%C3%A3o_da_Pol%C3%ADcia_Militar_do_Estado_de_S%C3%A3o_Paulo.svg/200px-Bras%C3%A3o_da_Pol%C3%ADcia_Militar_do_Estado_de_S%C3%A3o_Paulo.svg.png",
 };
-const FOTO_PADRAO = BOT_CONFIG.FOTO;
-let civilPassAtual = null; let placaEmConsulta = null; let etapaLogin = 0; let usuarioTemporario = null; let filtroAtual = 'TODOS'; let filtroLogAtual = 'TODOS';
+const DEFAULT_MODULES = { detran: true, bo: true, ouvidoria: true, licencas: true, mandados: true };
+let civilPassAtual = null,
+    placaEmConsulta = null,
+    etapaLogin = 0,
+    usuarioTemporario = null,
+    filtroAtual = "TODOS",
+    filtroLogAtual = "TODOS";
 
-// =========================================================================
-// 3. UTILITÁRIOS BASE E DISCORD UPLOAD DE ARQUIVOS
-// =========================================================================
-document.addEventListener("DOMContentLoaded", () => { if (!document.getElementById("sigo-notif-container")) { const notifContainer = document.createElement("div"); notifContainer.id = "sigo-notif-container"; document.body.appendChild(notifContainer); } setTimeout(() => { const splash = document.getElementById("splash-screen"); if (splash) { splash.style.opacity = "0"; setTimeout(() => splash.classList.add("hidden"), 1000); } }, 2500); });
-function sigoNotify(titulo, mensagem, tipo = "info") { const container = document.getElementById("sigo-notif-container"); if (!container) return; const toast = document.createElement("div"); toast.className = `sigo-toast ${tipo}`; toast.innerHTML = `<span class="toast-titulo">[ ${titulo} ]</span><span class="font-mono">${mensagem}</span>`; container.appendChild(toast); setTimeout(() => { toast.style.animation = "fadeOut 0.3s ease forwards"; setTimeout(() => toast.remove(), 300); }, 4500); }
+window.$ = function (id) {
+    return document.getElementById(id);
+};
+window.val = function (id) {
+    return window.$(id) ? window.$(id).value.trim() : "";
+};
+window.setVal = function (id, v) {
+    if (window.$(id)) window.$(id).value = v;
+};
+window.html = function (id, v) {
+    if (window.$(id)) window.$(id).innerHTML = v;
+};
+window.txt = function (id, v) {
+    if (window.$(id)) window.$(id).innerText = v;
+};
+window.shw = function (id) {
+    if (window.$(id)) window.$(id).classList.remove("hidden");
+};
+window.hid = function (id) {
+    if (window.$(id)) window.$(id).classList.add("hidden");
+};
+function gerarCodigoCidadao() {
+    return Math.random().toString(36).substring(2, 8).toUpperCase();
+}
+function gerarIPFake() {
+    return (
+        Math.floor(Math.random() * 255) +
+        "." +
+        Math.floor(Math.random() * 255) +
+        "." +
+        Math.floor(Math.random() * 255) +
+        "." +
+        Math.floor(Math.random() * 255)
+    );
+}
 
-// A Webhook Suprema com Suporte a Arquivo Falso PDF (.txt)
-function enviarWebhook(url, titulo, descricao, corHex, thumbnail = null, fields = [], arquivoConteudo = null, arquivoNome = null) {
-    if (!url || url.includes("SEU_LINK")) return;
-    const payload = { username: BOT_CONFIG.NOME, avatar_url: BOT_CONFIG.FOTO, embeds: [{ title: titulo, description: descricao, color: parseInt(corHex.replace("#", ""), 16), fields: fields, thumbnail: thumbnail ? { url: thumbnail } : null, footer: { text: BOT_CONFIG.RODAPE, icon_url: BOT_CONFIG.FOTO_RODAPE }, timestamp: new Date().toISOString() }] };
-    let options = { method: 'POST' };
-
-    // Se enviaram conteúdo de arquivo, usamos FormData para mandar o arquivo junto
-    if (arquivoConteudo && arquivoNome) {
-        const formData = new FormData();
-        formData.append('payload_json', JSON.stringify(payload));
-        const blob = new Blob([arquivoConteudo], { type: 'text/plain' });
-        formData.append('file', blob, arquivoNome);
-        options.body = formData;
-    } else {
-        options.headers = { 'Content-Type': 'application/json' }; options.body = JSON.stringify(payload);
+window.sigoNotify = function (ti, m, tp = "info") {
+    let c = window.$("sigo-notif-container");
+    if (!c) {
+        c = document.createElement("div");
+        c.id = "sigo-notif-container";
+        document.body.appendChild(c);
     }
-    fetch(url, options).catch(err => console.error("[S.I.G.O.] Falha webhook.", err));
-}
-
-function registrarLogInterno(categoria, autorNome, autorPass, detalhes, modulo) { const logs = JSON.parse(localStorage.getItem("sigo_db_logs")) || []; logs.push({ id: "LOG-" + Math.random().toString(36).substring(2, 8).toUpperCase(), data: new Date().toLocaleString('pt-BR'), categoria: categoria, modulo: modulo, autor: autorNome, passaporte: autorPass, detalhes: detalhes }); localStorage.setItem("sigo_db_logs", JSON.stringify(logs)); }
-function gerarIPFake() { return Math.floor(Math.random() * 255) + "." + Math.floor(Math.random() * 255) + "." + Math.floor(Math.random() * 255) + "." + Math.floor(Math.random() * 255); }
-function gerarCodigoCidadao() { return Math.random().toString(36).substring(2, 8).toUpperCase(); }
-function aplicarMascaraTelefone(el) { let v = el.value.replace(/\D/g, ''); if (v.startsWith('011')) v = v.substring(3); if (v.length > 7) v = v.substring(0, 7); if (v.length === 0) { el.value = ''; return; } if (v.length <= 3) { el.value = `(011) ${v}`; } else { el.value = `(011) ${v.substring(0, 3)}-${v.substring(3)}`; } }
-
-function inicializarBanco() {
-    if (!localStorage.getItem("sigo_v26_reset")) {
-        const dataAtual = new Date().toLocaleString('pt-BR');
-        const usuariosBase = { "3447": { passaporte: "3447", nome: "Comando Geral", tipo: "ADMIN", patente: "Coronel", corp: "Comando Geral", senha: "1012", status: "ATIVO", criacao: dataAtual, ip: "127.0.0.1 (MASTER)", online: false, ultimaAcao: "Offline", ultimoAcesso: "Nunca", foto: FOTO_PADRAO } };
-        if (!localStorage.getItem("sigo_db_usuarios")) localStorage.setItem("sigo_db_usuarios", JSON.stringify(usuariosBase));
-        if (!localStorage.getItem("sigo_db_civis")) localStorage.setItem("sigo_db_civis", JSON.stringify({}));
-        if (!localStorage.getItem("sigo_solicitacoes")) localStorage.setItem("sigo_solicitacoes", JSON.stringify([]));
-        if (!localStorage.getItem("sigo_investigacoes")) localStorage.setItem("sigo_investigacoes", JSON.stringify([]));
-        if (!localStorage.getItem("sigo_db_veiculos")) localStorage.setItem("sigo_db_veiculos", JSON.stringify({}));
-        if (!localStorage.getItem("sigo_db_multas")) localStorage.setItem("sigo_db_multas", JSON.stringify([]));
-        if (!localStorage.getItem("sigo_db_logs")) localStorage.setItem("sigo_db_logs", JSON.stringify([]));
-        if (!localStorage.getItem("sigo_db_licencas")) localStorage.setItem("sigo_db_licencas", JSON.stringify([]));
-        if (!localStorage.getItem("sigo_db_batalhoes")) localStorage.setItem("sigo_db_batalhoes", JSON.stringify(["Comando Geral", "1º GB (CBMESP)", "22º BPM/M (PMESP)", "DEIC (PCSP)", "Superintendência (PF)", "Base (PRF)"]));
-        if (!localStorage.getItem("sigo_db_mandados")) localStorage.setItem("sigo_db_mandados", JSON.stringify([]));
-        if (!localStorage.getItem("sigo_bos_civis")) localStorage.setItem("sigo_bos_civis", JSON.stringify([]));
-        localStorage.setItem("sigo_manutencao", "false"); localStorage.setItem("sigo_v26_reset", "true");
-    }
-}
-inicializarBanco();
-
-window.addEventListener('storage', function (e) { if (e.key === 'sigo_manutencao') verificarBloqueios(); });
-window.addEventListener("beforeunload", marcarOffline);
-
-function verificarBloqueios() {
-    const isManutencao = localStorage.getItem("sigo_manutencao") === "true"; const telaManutencao = document.getElementById("tela-manutencao"); const telaSuspensa = document.getElementById("tela-suspensa"); const oficial = JSON.parse(sessionStorage.getItem("sigo_oficial_logado"));
-    if (oficial) {
-        const dbBase = oficial.tipo === "CIVIL" ? JSON.parse(localStorage.getItem("sigo_db_civis")) : JSON.parse(localStorage.getItem("sigo_db_usuarios"));
-        if (!dbBase || !dbBase[oficial.passaporte]) { deslogarSistema(true); return; }
-        // Bloqueio de Conta (Ambos Militar e Civil)
-        if (dbBase[oficial.passaporte].status === "SUSPENSO") { if (telaSuspensa) telaSuspensa.classList.remove("hidden"); else deslogarSistema(); return; }
-    }
-    if (isManutencao && (!oficial || oficial.tipo !== "ADMIN")) {
-        if (telaManutencao) { telaManutencao.classList.remove("hidden"); if (document.querySelector(".dashboard-layout")) document.querySelector(".dashboard-layout").classList.add("hidden"); if (document.getElementById("main-container")) document.getElementById("main-container").classList.add("hidden"); } else { deslogarSistema(true); }
-    } else {
-        if (telaManutencao) telaManutencao.classList.add("hidden"); if (telaSuspensa) telaSuspensa.classList.add("hidden");
-        if (document.querySelector(".dashboard-layout")) document.querySelector(".dashboard-layout").classList.remove("hidden"); if (document.getElementById("main-container")) document.getElementById("main-container").classList.remove("hidden");
-    }
-}
-verificarBloqueios();
-function marcarOffline() { const u = JSON.parse(sessionStorage.getItem("sigo_oficial_logado")); if (u && u.tipo !== 'CIVIL') { const db = JSON.parse(localStorage.getItem("sigo_db_usuarios")); if (db && db[u.passaporte]) { db[u.passaporte].online = false; db[u.passaporte].ultimaAcao = "OFFLINE"; localStorage.setItem("sigo_db_usuarios", JSON.stringify(db)); } } }
-function atualizarAcaoLogado(acao) { const u = JSON.parse(sessionStorage.getItem("sigo_oficial_logado")); if (u && u.tipo !== 'CIVIL') { const db = JSON.parse(localStorage.getItem("sigo_db_usuarios")); if (db && db[u.passaporte]) { db[u.passaporte].ultimaAcao = acao.toUpperCase(); localStorage.setItem("sigo_db_usuarios", JSON.stringify(db)); } } }
-
-// =========================================================================
-// MÓDULO MASTER ADMIN - TESTE DE WEBHOOKS
-// =========================================================================
-window.abrirModalTesteWebhook = function () { document.getElementById("modal-teste-webhook").classList.remove("hidden"); }
-window.dispararTesteWebhooks = function () {
-    const logBox = document.getElementById("log-testes-webhooks"); logBox.innerHTML = "> Inicializando varredura de rotas HTTP...<br>";
-    Object.keys(WEBHOOKS).forEach((key, index) => {
-        setTimeout(() => {
-            if (WEBHOOKS[key] && !WEBHOOKS[key].includes("SEU_LINK")) { logBox.innerHTML += `<span style="color:#4ade80">> [OK] Rota ${key} operante. Disparando pacote...</span><br>`; enviarWebhook(WEBHOOKS[key], `🛠️ TESTE DE REDE: ${key}`, "O servidor estabeleceu conexão com sucesso com esta rota.", "#22c55e"); }
-            else { logBox.innerHTML += `<span style="color:#ef4444">> [FALHA] Rota ${key} não configurada ou vazia.</span><br>`; }
-            logBox.scrollTop = logBox.scrollHeight;
-        }, index * 800);
-    });
-}
-
-// =========================================================================
-// 5. SISTEMA DE LOGIN CIVIL E MILITAR
-// =========================================================================
-function esconderTodasAsTelas() { ["step-identificacao", "step-pin-militar", "step-pin-civil", "step-cadastro-civil", "step-login-civil", "step-login-militar"].forEach(id => { const el = document.getElementById(id); if (el) el.classList.add("hidden"); }); const main = document.getElementById("main-container"); if (main) main.classList.remove("form-expandido"); const headerId = document.getElementById("header-identificacao"); if (headerId) headerId.classList.remove("hidden"); }
-window.voltarInicio = function () { esconderTodasAsTelas(); usuarioTemporario = null; civilPassAtual = null; etapaLogin = 0; if (document.getElementById("step-identificacao")) { document.getElementById("step-identificacao").classList.remove("hidden"); document.getElementById("input-cpf").value = ""; document.getElementById("input-cpf").focus(); } }
-window.iniciarBusca = function () {
-    if (!document.getElementById("input-cpf")) return; const passDigitado = document.getElementById("input-cpf").value.trim();
-    if (passDigitado === "" || passDigitado.length > 4) { sigoNotify("FALHA DE SISTEMA", "ID em formato inválido.", "erro"); return; }
-    if (localStorage.getItem("sigo_manutencao") === "true" && passDigitado !== "3447") { sigoNotify("ACESSO NEGADO", "Servidor restrito por Manutenção.", "erro"); return; }
-    document.getElementById("loading-overlay").classList.remove("hidden"); setTimeout(() => { document.getElementById("loading-overlay").classList.add("hidden"); processarRoteamento(passDigitado); }, 800);
-}
-function processarRoteamento(pass) {
-    const dbMilitar = JSON.parse(localStorage.getItem("sigo_db_usuarios")) || {}; const dbCivil = JSON.parse(localStorage.getItem("sigo_db_civis")) || {}; esconderTodasAsTelas();
-    if (dbMilitar[pass]) {
-        const u = dbMilitar[pass]; if (u.status === "SUSPENSO") { sigoNotify("ACESSO REVOGADO", "Conta Suspensa.", "erro"); document.getElementById("step-identificacao").classList.remove("hidden"); return; }
-        usuarioTemporario = u; etapaLogin = 1; document.getElementById("input-pin").value = ""; document.getElementById("step-pin-militar").classList.remove("hidden"); document.getElementById("input-pin").focus();
-    } else if (dbCivil[pass]) {
-        if (dbCivil[pass].status === "SUSPENSO") { sigoNotify("ACESSO REVOGADO", "Conta Cidadão Bloqueada.", "erro"); document.getElementById("step-identificacao").classList.remove("hidden"); return; }
-        civilPassAtual = pass; document.getElementById("input-pin-civil").value = ""; document.getElementById("step-pin-civil").classList.remove("hidden"); document.getElementById("input-pin-civil").focus();
-    } else {
-        sigoNotify("REGISTRO NÃO ENCONTRADO", "Iniciando atualização cadastral.", "aviso"); document.getElementById("cad-civil-pass").value = pass; const main = document.getElementById("main-container"); if (main) main.classList.add("form-expandido"); document.getElementById("step-cadastro-civil").classList.remove("hidden"); document.getElementById("cad-civil-nome").focus();
-    }
-}
-window.validarPin = function () { const valorDigitado = document.getElementById("input-pin").value; if (valorDigitado === usuarioTemporario.senha) { usuarioTemporario.online = true; usuarioTemporario.ultimoAcesso = new Date().toLocaleString('pt-BR'); usuarioTemporario.ultimaAcao = "AUTENTICANDO NO TERMINAL"; if (!usuarioTemporario.ip) usuarioTemporario.ip = gerarIPFake(); const db = JSON.parse(localStorage.getItem("sigo_db_usuarios")); db[usuarioTemporario.passaporte] = usuarioTemporario; localStorage.setItem("sigo_db_usuarios", JSON.stringify(db)); esconderTodasAsTelas(); prepararTelaMilitar(usuarioTemporario); sigoNotify("ACESSO LIBERADO", "Autenticação concluída.", "sucesso"); registrarLogInterno("POLICIA", usuarioTemporario.nome, usuarioTemporario.passaporte, `Sessão tática iniciada. IP: ${usuarioTemporario.ip}`, "LOGIN"); enviarWebhook(WEBHOOKS.GERAL, "🔐 ACESSO TÁTICO AUTORIZADO", `**Operador:** ${usuarioTemporario.patente} ${usuarioTemporario.nome}\n**Passaporte:** ${usuarioTemporario.passaporte}\n**Lotação:** ${usuarioTemporario.corp}`, "#1d4ed8", usuarioTemporario.foto); } else { sigoNotify("FALHA DE AUTENTICAÇÃO", "Senha incorreta informada.", "erro"); document.getElementById("input-pin").value = ""; } }
-window.validarPinCivil = function () { const dbCivil = JSON.parse(localStorage.getItem("sigo_db_civis")) || {}; const civil = dbCivil[civilPassAtual]; const valorDigitado = document.getElementById("input-pin-civil").value; if (!civil.senha) { if (valorDigitado.length < 4) { sigoNotify("AVISO", "Crie uma senha de no mínimo 4 dígitos.", "aviso"); return; } civil.senha = valorDigitado; localStorage.setItem("sigo_db_civis", JSON.stringify(dbCivil)); sigoNotify("SENHA SALVA", "Sua senha Gov.br foi registrada com sucesso.", "sucesso"); autenticarCivilPre(civil); } else if (valorDigitado === civil.senha) { sigoNotify("ACESSO LIBERADO", "Autenticação Gov.br concluída.", "sucesso"); autenticarCivilPre(civil); } else { sigoNotify("FALHA DE AUTENTICAÇÃO", "Senha Gov.br incorreta.", "erro"); document.getElementById("input-pin-civil").value = ""; } }
-
-window.salvarCadastroCivil = function () {
-    const pass = document.getElementById("cad-civil-pass").value; const senha = document.getElementById("cad-civil-senha") ? document.getElementById("cad-civil-senha").value : ""; const email = document.getElementById("cad-civil-email") ? document.getElementById("cad-civil-email").value.trim() : ""; const discord = document.getElementById("cad-civil-discord") ? document.getElementById("cad-civil-discord").value.trim() : ""; const telefone = document.getElementById("cad-civil-tel").value.trim();
-    if (!discord || discord.length < 3) { sigoNotify("DADOS INCOMPLETOS", "Identificação do Discord é obrigatória.", "erro"); return; } if (telefone.length < 14) { sigoNotify("DADOS INCOMPLETOS", "Preencha o telefone de forma completa.", "erro"); return; } if (!senha || senha.length < 4) { sigoNotify("SEGURANÇA GOV.BR", "Crie uma senha numérica de no mínimo 4 dígitos.", "erro"); return; }
-
-    const civil = { passaporte: pass, senha: senha, codigoUnico: gerarCodigoCidadao(), nome: document.getElementById("cad-civil-nome").value.trim(), idade: document.getElementById("cad-civil-idade").value.trim(), sangue: document.getElementById("cad-civil-sangue").value, estadoCivil: document.getElementById("cad-civil-estado").value, telefone: telefone, endereco: document.getElementById("cad-civil-endereco").value.trim(), emprego: document.getElementById("cad-civil-emprego").value.trim(), estudo: document.getElementById("cad-civil-estudo").value, email: email, discord: discord, foto: "https://cdn-icons-png.flaticon.com/512/1077/1077114.png", status: "ATIVO", criacao: new Date().toLocaleString('pt-BR'), ip: gerarIPFake(), tipo: "CIVIL" };
-
-    if (!civil.nome || !civil.idade) { sigoNotify("DADOS INCOMPLETOS", "Preencha os campos obrigatórios.", "erro"); return; }
-    const dbCivil = JSON.parse(localStorage.getItem("sigo_db_civis")) || {}; dbCivil[pass] = civil; localStorage.setItem("sigo_db_civis", JSON.stringify(dbCivil));
-    sigoNotify("REGISTRO CONCLUÍDO", "Base governamental atualizada.", "sucesso"); registrarLogInterno("CIVIL", civil.nome, civil.passaporte, `Novo registro civil criado. IP: ${civil.ip}`, "LOGIN"); enviarWebhook(WEBHOOKS.GERAL, "👤 NOVO REGISTRO CIVIL (GOV.BR)", `**Nome:** ${civil.nome}\n**Passaporte:** ${civil.passaporte}\n**Discord:** ${civil.discord}\n**Profissão:** ${civil.emprego}`, "#059669"); autenticarCivilPre(civil);
-}
-
-function prepararTelaMilitar(u) { document.getElementById("step-login-militar").classList.remove("hidden"); document.getElementById("nome-militar").innerText = u.patente + " " + u.nome; document.getElementById("corp-militar").innerText = u.corp; document.getElementById("pass-militar").innerText = u.passaporte; const fotoEl = document.getElementById("foto-militar"); if (fotoEl) fotoEl.src = u.foto || FOTO_PADRAO; const badge = document.getElementById("badge-militar"); if (u.tipo === "ADMIN") { badge.innerText = "ALTO COMANDO"; badge.className = "badge"; badge.style.backgroundColor = "var(--admin-gold)"; badge.style.color = "#000"; } else if (u.tipo === "PM" || u.tipo === "PC") { badge.innerText = "FORÇA POLICIAL"; badge.className = "badge badge-pm"; } else if (u.tipo === "PF") { badge.innerText = "POLÍCIA FEDERAL"; badge.className = "badge badge-pf"; } else if (u.tipo === "PRF") { badge.innerText = "POLÍCIA RODOVIÁRIA FEDERAL"; badge.className = "badge badge-prf"; } else { badge.innerText = "BOMBEIRO MILITAR"; badge.className = "badge badge-bombeiro"; } }
-window.autenticarMilitar = function () { sessionStorage.setItem("sigo_oficial_logado", JSON.stringify(usuarioTemporario)); if (usuarioTemporario.tipo === "ADMIN") window.location.href = "admin.html"; else window.location.href = "painel.html"; }
-window.deslogarSistema = function (forcar = false) { if (!forcar) marcarOffline(); sessionStorage.removeItem("sigo_oficial_logado"); window.location.href = "index.html"; }
-
-// =========================================================================
-// 6. PORTAL DO CIDADÃO (CIVIL) E DELEGACIA
-// =========================================================================
-function autenticarCivilPre(civil) {
-    esconderTodasAsTelas(); civilPassAtual = civil.passaporte; const headerId = document.getElementById("header-identificacao"); if (headerId) headerId.classList.add("hidden"); const main = document.getElementById("main-container"); if (main) main.classList.add("form-expandido");
-    document.getElementById("nome-civil-cadastrado").innerText = civil.nome;
-    const fotoCivil = document.getElementById("foto-civil-perfil"); if (fotoCivil) fotoCivil.src = civil.foto || "https://cdn-icons-png.flaticon.com/512/1077/1077114.png";
-    const dbCivil = JSON.parse(localStorage.getItem("sigo_db_civis"));
-    if (!dbCivil[civil.passaporte].codigoUnico) { dbCivil[civil.passaporte].codigoUnico = gerarCodigoCidadao(); localStorage.setItem("sigo_db_civis", JSON.stringify(dbCivil)); civil.codigoUnico = dbCivil[civil.passaporte].codigoUnico; }
-    if (document.getElementById("cod-civil-cadastrado")) document.getElementById("cod-civil-cadastrado").innerText = "CÓD: " + civil.codigoUnico.toUpperCase();
-    document.getElementById("step-login-civil").classList.remove("hidden"); dbCivil[civil.passaporte].ultimoAcesso = new Date().toLocaleString('pt-BR'); localStorage.setItem("sigo_db_civis", JSON.stringify(dbCivil));
-
-    mudarAbaCivil('aba-civil-perfil'); renderizarPainelCivilDash(civil.passaporte); gerarNadaConsta(civil.passaporte); carregarOficiaisParaDenuncia(); renderizarDetranCivil(civil.passaporte); renderizarMeusBOCivis();
-    registrarLogInterno("CIVIL", civil.nome, civil.passaporte, `Acessou o Portal Gov.br.`, "LOGIN");
-}
-window.mudarAbaCivil = function (idAba) { ["aba-civil-perfil", "aba-civil-nada-consta", "aba-civil-detran", "aba-civil-delegacia", "aba-civil-ouvidoria"].forEach(id => { if (document.getElementById(id)) document.getElementById(id).classList.add("hidden"); });["btn-civil-perfil", "btn-civil-nada-consta", "btn-civil-detran", "btn-civil-delegacia", "btn-civil-ouvidoria"].forEach(id => { if (document.getElementById(id)) document.getElementById(id).classList.remove("ativo"); }); document.getElementById(idAba).classList.remove("hidden"); document.getElementById(idAba.replace('aba-', 'btn-')).classList.add("ativo"); }
-
-window.enviarBOCivil = function () { const tipo = document.getElementById("bo-civil-tipo").value; const dataHora = document.getElementById("bo-civil-data").value; const relato = document.getElementById("bo-civil-relato").value.trim(); if (!dataHora || !relato) { sigoNotify("ERRO", "Preencha a data e os fatos detalhadamente.", "erro"); return; } const dbCivil = JSON.parse(localStorage.getItem("sigo_db_civis")); const civil = dbCivil[civilPassAtual]; const pinDigitado = prompt(`[ DELEGACIA ELETRÔNICA ]\nAssine o BO digitando sua Senha Gov.br.\nFalsa comunicação de crime é penalizada.`); if (pinDigitado !== civil.senha) { sigoNotify("ASSINATURA RECUSADA", "Senha Gov.br incorreta.", "erro"); return; } const bosCivis = JSON.parse(localStorage.getItem("sigo_bos_civis")) || []; const protocolo = "BOC-" + Math.floor(100000 + Math.random() * 900000); const novoBO = { id: protocolo, civilPass: civilPassAtual, nomeCivil: civil.nome, tipo: tipo, dataOcorrencia: dataHora.replace('T', ' às '), relato: relato, status: "EM ANÁLISE", dataRegistro: new Date().toLocaleString('pt-BR') }; bosCivis.push(novoBO); localStorage.setItem("sigo_bos_civis", JSON.stringify(bosCivis)); registrarLogInterno("CIVIL", civil.nome, civilPassAtual, `Registrou BO Eletrônico ${protocolo} (${tipo})`, "DELEGACIA"); enviarWebhook(WEBHOOKS.GERAL, `💻 NOVO B.O ELETRÔNICO (CIVIL) [${protocolo}]`, `**Cidadão:** ${civil.nome} (ID: ${civilPassAtual})\n**Ocorrência:** ${tipo}\n**Data do Fato:** ${novoBO.dataOcorrencia}\n\n**Relato da Vítima:**\n"${relato}"\n\n*Aguardando validação policial no terminal.*`, "#0ea5e9"); sigoNotify("BO REGISTRADO", "Aguardando análise da Polícia Civil.", "sucesso"); document.getElementById("bo-civil-data").value = ""; document.getElementById("bo-civil-relato").value = ""; renderizarMeusBOCivis(); }
-function renderizarMeusBOCivis() { const container = document.getElementById("lista-bos-civis-status"); if (!container) return; const bos = JSON.parse(localStorage.getItem("sigo_bos_civis")) || []; const meusBos = bos.filter(b => b.civilPass === civilPassAtual); if (meusBos.length === 0) { container.innerHTML = `<p class="font-mono" style="font-size:10px; color:#64748b;">Você não possui ocorrências eletrônicas registradas.</p>`; return; } let html = ""; meusBos.reverse().forEach(b => { let corStatus = b.status === "VALIDADO" ? "var(--success-green)" : (b.status === "REJEITADO" ? "var(--bombeiro-red)" : "var(--warning-yellow)"); html += `<div style="background:#080b12; border-left:3px solid ${corStatus}; padding:15px; margin-bottom:10px; border-radius:3px; border-top:1px solid #1e293b; border-right:1px solid #1e293b; border-bottom:1px solid #1e293b;"><div style="display:flex; justify-content:space-between; margin-bottom:10px;"><span style="color:#f8fafc; font-size:12px; font-weight:800;">${b.tipo}</span><span style="font-size:10px; color:${corStatus}; font-weight:800;">[ ${b.status} ]</span></div><p style="font-size:10px; color:#cbd5e1; margin-bottom:5px;"><strong>Protocolo:</strong> ${b.id} | <strong>Data Fato:</strong> ${b.dataOcorrencia}</p><p style="font-size:11px; color:#94a3b8; font-style:italic; font-family:'JetBrains Mono', monospace;">"${b.relato.substring(0, 80)}..."</p>${b.status !== 'EM ANÁLISE' ? `<p style="font-size:10px; color:#fef08a; margin-top:10px;"><strong>Despacho Policial:</strong> ${b.despacho}</p>` : ''}</div>`; }); container.innerHTML = html; }
-
-function renderizarPainelCivilDash(pass) { const box = document.getElementById("civil-historico-container"); if (!box) return; let htmlContent = ""; const licencas = JSON.parse(localStorage.getItem("sigo_db_licencas")) || []; const minhasLicencas = licencas.filter(l => l.passaporte === pass); if (minhasLicencas.length > 0) { htmlContent += `<h4 style="color:var(--gov-light); font-size:10px; letter-spacing:1px; border-bottom:1px solid #1e293b; padding-bottom:5px; margin-top:20px; margin-bottom:15px; text-transform:uppercase;">DOCUMENTAÇÃO E LICENÇAS FEDERAIS</h4><div style="display:flex; gap:15px; flex-wrap:wrap; margin-bottom:30px;">`; minhasLicencas.forEach(l => { htmlContent += `<div style="background: #082f49; border: 1px solid var(--gov-light); padding: 20px; border-radius: 4px; flex: 1; min-width: 250px; position:relative; overflow:hidden;" class="step-animado"><div style="position:absolute; right:-10px; top:-10px; opacity:0.1; font-size:70px; pointer-events:none;">🛡️</div><h5 style="color:var(--gov-light); font-size:14px; font-weight:800; margin-bottom:5px;">${l.tipo}</h5><p style="font-size:10px; color:#bae6fd; font-family:'JetBrains Mono', monospace;">Protocolo: ${l.id}</p><p style="font-size:10px; color:#bae6fd; font-family:'JetBrains Mono', monospace; margin-bottom:15px;">Validade: <strong style="color:#fef08a;">${l.validade}</strong></p><button class="btn-entrar font-mono" style="background:var(--gov-blue); color:#fff; border:none; width:100%; font-size:9px; padding:10px;" onclick="abrirCRAFCivil('${l.id}')">[ VISUALIZAR DOCUMENTO ]</button></div>`; }); htmlContent += `</div>`; } htmlContent += `<h4 style="color:var(--text-muted); font-size:10px; letter-spacing:1px; border-bottom:1px solid #1e293b; padding-bottom:5px; margin-top:20px; margin-bottom:15px; text-transform:uppercase;">HISTÓRICO NA REDE TÁTICA</h4><div class="timeline">`; let historicoEncontrado = false; const dbMilitar = JSON.parse(localStorage.getItem("sigo_db_usuarios")) || {}; Object.keys(dbMilitar).forEach(oficialPass => { const boletins = JSON.parse(localStorage.getItem("sigo_historico_" + oficialPass)) || []; boletins.forEach(b => { if (b.vitimaPass === pass || b.alvoPass === pass) { historicoEncontrado = true; let icone = b.tipo === 'APH' ? '[ APH ]' : '[ RUF ]'; htmlContent += `<div class="timeline-item"><span style="font-size:9px; color:var(--text-muted); font-family:'JetBrains Mono', monospace;">${b.data}</span><h4 style="color:#f8fafc; font-size:11px; margin-top:2px;">${icone} ${b.tipo === 'APH' ? 'ATENDIMENTO MÉDICO' : 'ENVOLVIMENTO POLICIAL'}</h4><p style="font-size:10px; color:#cbd5e1; margin-top:4px; font-family:'JetBrains Mono', monospace;">AGENTE: ${b.oficialNome}</p><p style="font-size:10px; color:#cbd5e1; font-family:'JetBrains Mono', monospace;">AÇÃO: ${b.desfecho || b.socorro || 'Registrado'}</p></div>`; } }); }); htmlContent += `</div>`; if (!historicoEncontrado) htmlContent += `<p style="font-size:10px; color:#64748b; margin-top:10px; font-family:'JetBrains Mono', monospace;">Nenhum registro de atendimento ou abordagem encontrado.</p>`; box.innerHTML = htmlContent; }
-window.abrirCRAFCivil = function (idLic) { const pinDigitado = prompt("[ SEGURANÇA GOV.BR ]\nDigite sua senha numérica Gov.br para acessar:"); if (!pinDigitado) return; const dbCivil = JSON.parse(localStorage.getItem("sigo_db_civis")) || {}; const civil = dbCivil[civilPassAtual]; if (pinDigitado !== civil.senha) { sigoNotify("ACESSO NEGADO", "Senha Gov.br incorreta.", "erro"); return; } const licencas = JSON.parse(localStorage.getItem("sigo_db_licencas")) || []; const lic = licencas.find(l => l.id === idLic); if (lic) { let dadosArma = ""; if (lic.arma) { dadosArma = `<div style="background: #e2e8f0; padding: 10px; border-left: 4px solid #0369a1; margin: 20px 0;"><p style="font-size: 11px; margin-bottom: 5px; color: #334155;"><strong>ARMAMENTO:</strong> ${lic.arma.toUpperCase()}</p><p style="font-size: 11px; color: #334155;"><strong>LIMITE DE MUNIÇÃO:</strong> ${lic.municao} UNIDADES</p></div>`; } const htmlDoc = `<div style="text-align:center; border-bottom: 2px solid #0f172a; padding-bottom: 20px; margin-bottom: 20px;"><img src="https://cdn-icons-png.flaticon.com/512/2566/2566144.png" style="width:60px; filter: grayscale(100%); margin-bottom:10px;"><h2 style="font-size:18px; font-weight:900; color:#0f172a; letter-spacing:1px; margin-bottom:5px;">REPÚBLICA FEDERATIVA DO BRASIL</h2><h3 style="font-size:14px; font-weight:800; color:#0369a1;">${lic.tipo.toUpperCase()}</h3><p style="font-size:10px; color:#475569; margin-top:5px; font-family: 'JetBrains Mono', monospace;">CERTIFICADO DE REGISTRO N° ${lic.id}</p></div><div style="display:flex; justify-content:space-between; margin-bottom: 15px;"><div><p style="font-size:10px; color:#64748b;">NOME DO TITULAR</p><p style="font-size:14px; font-weight:800;">${civil.nome.toUpperCase()}</p></div><div style="text-align:right;"><p style="font-size:10px; color:#64748b;">DOCUMENTO / PASSAPORTE</p><p style="font-size:14px; font-weight:800;">${civil.passaporte}</p></div></div>${dadosArma}<div style="margin-bottom: 20px;"><p style="font-size:10px; color:#64748b; margin-bottom:5px;">LAUDO / AUTORIZAÇÃO OFICIAL:</p><div style="background: #fff; border: 1px solid #cbd5e1; padding: 15px; font-size: 11px; line-height: 1.5; color: #0f172a; text-align: justify; font-style: italic;">"${lic.obs}"</div></div><div style="display:flex; justify-content:space-between; align-items:flex-end; border-top: 1px solid #cbd5e1; padding-top: 20px; margin-top: 30px;"><div><p style="font-size:10px; color:#64748b;">VALIDADE DO DOCUMENTO</p><p style="font-size:16px; font-weight:900; color:#b91c1c;">${lic.validade}</p></div><div style="text-align:right;"><p style="font-size:12px; font-family: 'Times New Roman', serif; font-style: italic; border-bottom: 1px solid #000; padding-bottom: 5px; margin-bottom: 5px;">${lic.emissor}</p><p style="font-size:9px; color:#64748b;">AUTORIDADE EXPEDIDORA</p></div></div><div style="text-align:center; margin-top: 30px; padding: 10px; border: 2px dashed #15803d; color: #15803d; font-weight: 800; letter-spacing: 2px; transform: rotate(-2deg);">DOCUMENTO VALIDADO DIGITALMENTE</div>`; document.getElementById("conteudo-documento-licenca").innerHTML = htmlDoc; document.getElementById("modal-documento-licenca").classList.remove("hidden"); } }
-function gerarNadaConsta(pass) { const invs = JSON.parse(localStorage.getItem("sigo_investigacoes")) || []; const inqueritosAbertos = invs.filter(i => i.alvoPass === pass && i.status === 'ABERTO'); const container = document.getElementById("container-documento-nada-consta"); if (!container) return; let dataEmissao = new Date().toLocaleString('pt-BR'); if (inqueritosAbertos.length === 0) { container.innerHTML = `<div class="doc-nada-consta step-animado"><div class="doc-header-civil"><img src="https://cdn-icons-png.flaticon.com/512/2566/2566144.png" style="width:50px; margin-bottom:10px;"><h3 style="font-size:16px; font-weight:800; text-transform:uppercase;">SECRETARIA DE SEGURANÇA PÚBLICA</h3><p style="font-size:10px;">CERTIDÃO NEGATIVA DE ANTECEDENTES CRIMINAIS</p></div><div class="doc-body-civil"><p>Certificamos que após consulta ao <strong>S.I.G.O.</strong>, em nome do portador do ID <strong>${pass}</strong>, <strong>NÃO CONSTA</strong> anotações de inquéritos ou mandados ativos.</p><p style="margin-top:20px;"><strong>Emitido em:</strong> ${dataEmissao}</p><div class="carimbo-verde">AUTENTICADO E VALIDADO</div></div></div>`; } else { container.innerHTML = `<div class="doc-nada-consta step-animado" style="border-color: var(--bombeiro-red); background: rgba(220, 38, 38, 0.02);"><div class="doc-header-civil" style="border-bottom-color: var(--bombeiro-red);"><img src="https://cdn-icons-png.flaticon.com/512/2566/2566144.png" style="width:50px; margin-bottom:10px; filter: grayscale(100%);"><h3 style="font-size:16px; font-weight:800; color:var(--bombeiro-red); text-transform:uppercase;">SECRETARIA DE SEGURANÇA PÚBLICA</h3><p style="font-size:10px; color:var(--bombeiro-red);">CERTIDÃO POSITIVA DE ANTECEDENTES</p></div><div class="doc-body-civil"><p>Atestamos que em consulta sob o ID <strong>${pass}</strong>, <strong>CONSTA(M)</strong> registro(s) ativo(s) de inquérito criminal.</p><p style="margin-top:20px; color:var(--bombeiro-red);"><strong>[!] PENDÊNCIA JUDICIAL ATIVA</strong></p><p style="margin-top:5px;"><strong>Emitido em:</strong> ${dataEmissao}</p><div class="carimbo-verde" style="color:var(--bombeiro-red); border-color:var(--bombeiro-red);">REGISTRO POSITIVO</div></div></div>`; } }
-
-window.transferirVeiculoCivil = function (placa) {
-    const alvoPass = prompt(`Transferência de Propriedade - Placa: ${placa}\n\nDigite o PASSAPORTE (ID) do comprador:`);
-    if (!alvoPass || alvoPass === civilPassAtual) return;
-    const dbCivil = JSON.parse(localStorage.getItem("sigo_db_civis")) || {};
-    if (!dbCivil[alvoPass]) { sigoNotify("ERRO", "Cidadão comprador não existe no Gov.br.", "erro"); return; }
-
-    const civil = dbCivil[civilPassAtual];
-    const pinDigitado = prompt(`[ DETRAN ELETRÔNICO ]\nPara assinar a transferência do ${placa} para ${dbCivil[alvoPass].nome},\ndigite sua Senha Gov.br:`);
-    if (pinDigitado !== civil.senha) { sigoNotify("ASSINATURA RECUSADA", "Senha Gov.br incorreta.", "erro"); return; }
-
-    const veiculosDb = JSON.parse(localStorage.getItem("sigo_db_veiculos")) || {};
-    veiculosDb[placa].proprietario = alvoPass;
-    localStorage.setItem("sigo_db_veiculos", JSON.stringify(veiculosDb));
-
-    registrarLogInterno("CIVIL", civil.nome, civilPassAtual, `Transferiu o veículo ${placa} para o ID ${alvoPass}`, "DETRAN");
-    enviarWebhook(WEBHOOKS.DETRAN, "🔄 TRANSFERÊNCIA DE VEÍCULO ONLINE", `**Vendedor:** ${civil.nome} (ID: ${civilPassAtual})\n**Comprador:** ${dbCivil[alvoPass].nome} (ID: ${alvoPass})\n**Veículo (Placa):** ${placa}`, "#0ea5e9");
-    sigoNotify("SUCESSO", "Veículo transferido de nome.", "sucesso"); renderizarDetranCivil(civilPassAtual);
-}
-
-function renderizarDetranCivil(pass) {
-    if (!document.getElementById("container-cnh-digital")) return; const civil = JSON.parse(localStorage.getItem("sigo_db_civis"))[pass]; const multasDb = JSON.parse(localStorage.getItem("sigo_db_multas")) || []; const veiculosDb = JSON.parse(localStorage.getItem("sigo_db_veiculos")) || {}; const minhasMultas = multasDb.filter(m => m.passaporte === pass); const meusVeiculos = Object.values(veiculosDb).filter(v => v.proprietario === pass); const pontosCNH = minhasMultas.length * 5; const cnhSuspensa = pontosCNH >= 20; document.getElementById("container-cnh-digital").innerHTML = `<div class="cnh-documento ${cnhSuspensa ? 'cnh-suspensa' : ''}"><div class="cnh-pontos">${pontosCNH} PONTOS</div><div class="cnh-foto"></div><div class="cnh-dados"><h4>REPÚBLICA FEDERATIVA DO BRASIL</h4><h4 style="color: #4ade80; margin-bottom: 10px;">CARTEIRA NACIONAL DE HABILITAÇÃO</h4><p style="font-size: 10px; color: #86efac; margin-bottom: 0;">NOME DO CONDUTOR</p><p>${civil.nome}</p><div style="display: flex; gap: 40px;"><div><p style="font-size: 10px; color: #86efac; margin-bottom: 0;">DOC. IDENTIDADE</p><p>${pass}</p></div><div><p style="font-size: 10px; color: #86efac; margin-bottom: 0;">CATEGORIA</p><p>A / B</p></div><div><p style="font-size: 10px; color: #86efac; margin-bottom: 0;">STATUS</p><p style="color: ${cnhSuspensa ? '#fca5a5' : '#fff'};">${cnhSuspensa ? 'SUSPENSA' : 'REGULAR'}</p></div></div></div></div>`;
-    const divVeiculos = document.getElementById("lista-meus-veiculos"); divVeiculos.innerHTML = ""; if (meusVeiculos.length === 0) { divVeiculos.innerHTML = `<p class="font-mono" style="font-size: 10px; color: #64748b;">Nenhum veículo registrado.</p>`; } else { meusVeiculos.forEach(v => { const statusClass = v.status === 'APREENDIDO' ? 'bad' : 'ok'; divVeiculos.innerHTML += `<div class="card-veiculo ${v.status === 'APREENDIDO' ? 'status-apreendido' : ''}"><div class="veiculo-info"><h4>${v.modelo} - ${v.cor}</h4><p>PLACA: ${v.placa}</p><span class="status-badge ${statusClass}">${v.status}</span><br><button class="btn-neutro font-mono mt-15" style="padding: 5px; font-size: 8px; border-color:#0ea5e9; color:#0ea5e9;" onclick="transferirVeiculoCivil('${v.placa}')">[ TRANSFERIR PROPRIEDADE ]</button></div><div class="placa-veiculo" style="transform: scale(0.6); transform-origin: right center; margin: 0;"><div class="placa-header"><span>BRASIL</span><img src="https://upload.wikimedia.org/wikipedia/commons/thumb/c/c9/Bandeira_do_Mercosul.svg/1200px-Bandeira_do_Mercosul.svg.png" style="height:10px;"></div><div class="placa-numero">${v.placa}</div></div></div>`; }); }
-    const divMultas = document.getElementById("lista-minhas-multas"); divMultas.innerHTML = ""; if (minhasMultas.length === 0) { divMultas.innerHTML = `<p class="font-mono" style="font-size: 10px; color: #64748b;">Nenhuma infração pendente.</p>`; } else { minhasMultas.forEach(m => { let acao = m.status === 'AGUARDANDO_BAIXA' ? `<span style="color:var(--warning-yellow); font-size:9px; font-weight:800;">AGUARDANDO CONFIRMAÇÃO POLICIAL</span>` : `<button class="btn-neutro font-mono" style="padding: 5px 10px; font-size: 8px; margin-top: 5px; border-color: var(--success-green); color: var(--success-green);" onclick="solicitarPagamentoMulta('${m.id}')">[ SOLICITAR BAIXA DE PAGAMENTO ]</button>`; divMultas.innerHTML += `<div class="card-multa" style="${m.status === 'AGUARDANDO_BAIXA' ? 'border-color: #64748b; opacity:0.7;' : ''}"><div class="multa-info"><h5 style="${m.status === 'AGUARDANDO_BAIXA' ? 'color:#94a3b8;' : ''}">${m.motivo}</h5><p>Veículo: ${m.placa} | Protocolo: ${m.id}</p><p>Autuador: ${m.oficial}</p></div><div style="text-align: right;"><p class="multa-valor">R$ ${m.valor},00</p>${acao}</div></div>`; }); }
-}
-window.solicitarPagamentoMulta = function (idMulta) { if (!confirm("A baixa precisa ser validada por um oficial. Confirmar?")) return; let multasDb = JSON.parse(localStorage.getItem("sigo_db_multas")) || []; let multa = multasDb.find(m => m.id === idMulta); if (multa) { multa.status = 'AGUARDANDO_BAIXA'; localStorage.setItem("sigo_db_multas", JSON.stringify(multasDb)); const civil = JSON.parse(localStorage.getItem("sigo_db_civis"))[civilPassAtual]; registrarLogInterno("CIVIL", civil.nome, civilPassAtual, `Solicitou baixa da multa ${idMulta}`, "FINANCEIRO"); enviarWebhook(WEBHOOKS.FINANCEIRO, "💰 NOVA SOLICITAÇÃO DE PAGAMENTO", `Requer verificação policial no terminal.\n\n**Cidadão:** ${civil.nome} (ID: ${civilPassAtual})\n**Placa:** ${multa.placa}\n**Valor Pago:** R$ ${multa.valor},00`, "#d97706"); sigoNotify("SOLICITAÇÃO ENVIADA", "Aguarde um oficial confirmar o recebimento.", "sucesso"); renderizarDetranCivil(civilPassAtual); } }
-function carregarOficiaisParaDenuncia() { const select = document.getElementById("denuncia-oficial-alvo"); if (!select) return; const dbMilitar = JSON.parse(localStorage.getItem("sigo_db_usuarios")) || {}; select.innerHTML = '<option value="">Selecione o oficial infrator...</option>'; Object.values(dbMilitar).forEach(u => { if (u.tipo !== "ADMIN") { select.innerHTML += `<option value="${u.passaporte}">${u.tipo} - ${u.patente} ${u.nome} (ID: ${u.passaporte})</option>`; } }); }
-window.enviarDenunciaCorregedoria = function () { const alvoPass = document.getElementById("denuncia-oficial-alvo").value; const relato = document.getElementById("denuncia-relato").value.trim(); if (!alvoPass || !relato) { sigoNotify("ERRO", "Preencha todos os campos.", "erro"); return; } const dbMilitar = JSON.parse(localStorage.getItem("sigo_db_usuarios")) || {}; const alvo = dbMilitar[alvoPass]; const protocolo = "DEN-" + Math.floor(1000 + Math.random() * 9000); const solicitacoes = JSON.parse(localStorage.getItem("sigo_solicitacoes")) || []; solicitacoes.push({ id: protocolo, protocolo: "CIDADÃO ID: " + civilPassAtual, tipo: "DENÚNCIA CIVIL", oficial: `${alvo.patente} ${alvo.nome}`, oficialPass: alvo.passaporte, motivo: `[OUVIDORIA] Denunciado: ${alvo.nome}. Relato: ${relato}`, data: new Date().toLocaleString('pt-BR'), status: 'PENDENTE' }); localStorage.setItem("sigo_solicitacoes", JSON.stringify(solicitacoes)); enviarWebhook(WEBHOOKS.CORREGEDORIA, "🚨 DENÚNCIA DA POPULAÇÃO", `**Denunciante:** ID ${civilPassAtual}\n**Oficial Denunciado:** ${alvo.patente} ${alvo.nome}\n\n**Depoimento:**\n"${relato}"`, "#e11d48"); sigoNotify("OUVIDORIA", "Sua denúncia foi protocolada sob sigilo.", "sucesso"); document.getElementById("denuncia-relato").value = ""; document.getElementById("denuncia-oficial-alvo").value = ""; mudarAbaCivil('aba-civil-perfil'); }
-
-// =========================================================================
-// 7. PAINEL POLICIAL TÁTICO E QRR
-// =========================================================================
-window.carregarDadosPainel = function () { if (!document.getElementById("topbar-nome")) return; const u = JSON.parse(sessionStorage.getItem("sigo_oficial_logado")); if (!u || u.tipo === "CIVIL") { window.location.href = "index.html"; return; } document.getElementById("topbar-nome").innerText = u.patente + " " + u.nome; document.getElementById("aph-socorrista-nome").value = u.patente + " " + u.nome; document.getElementById("aph-socorrista-pass").value = u.passaporte; const badge = document.getElementById("topbar-badge"); if (u.tipo === "PM" || u.tipo === "PC") { badge.innerText = u.tipo === "PM" ? "PMESP" : "PCSP"; badge.className = "badge badge-pm"; document.querySelector(".titulo-sigo-pequeno").innerText = "S.I.G.O. TÁTICO"; } else if (u.tipo === "PF") { badge.innerText = "POLÍCIA FEDERAL"; badge.className = "badge badge-pf"; document.querySelector(".titulo-sigo-pequeno").innerText = "S.I.G.O. FEDERAL"; } else if (u.tipo === "PRF") { badge.innerText = "POLÍCIA RODOVIÁRIA"; badge.className = "badge badge-prf"; document.querySelector(".titulo-sigo-pequeno").innerText = "S.I.G.O. RODOVIÁRIO"; } atualizarAcaoLogado("LENDO PAINEL PRINCIPAL"); recuperarAutoSave(); carregarMeusBoletinsPainel(); }
-
-// [NOVO] ACIONAMENTO DE PÂNICO (QRR)
-window.acionarQRR = function () {
-    const u = JSON.parse(sessionStorage.getItem("sigo_oficial_logado"));
-    if (!confirm("ALERTA MÁXIMO: Disparar botão de pânico (QRR)? Apenas para emergências letais!")) return;
-
-    // Toca a sirene no painel localmente
-    let audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-    let osc = audioCtx.createOscillator(); osc.type = 'sawtooth'; osc.frequency.setValueAtTime(400, audioCtx.currentTime); osc.frequency.linearRampToValueAtTime(1000, audioCtx.currentTime + 0.5); osc.connect(audioCtx.destination); osc.start(); osc.stop(audioCtx.currentTime + 1);
-
-    registrarLogInterno("POLICIA", u.nome, u.passaporte, `ACIONOU BOTÃO DE PÂNICO (QRR)`, "SISTEMA");
-    enviarWebhook(WEBHOOKS.GERAL, `🚨 [ Q.R.R ] BOTÃO DE PÂNICO ACIONADO 🚨`, `**OFICIAL EM PERIGO E SOLICITANDO APOIO MÁXIMO IMEDIATO.**\n\n**Agente:** ${u.patente} ${u.nome}\n**Passaporte:** ${u.passaporte}\n**Lotação:** ${u.corp}\n\n*Todas as guarnições devem direcionar esforços imediatos ao último QTH conhecido.*`, "#dc2626");
-    sigoNotify("QRR DISPARADO", "Pedido de socorro tático enviado.", "aviso");
-}
-
-window.mudarAba = function (idAba) { ["aba-novo-aph", "aba-historico", "aba-uso-forca", "aba-mandados", "aba-detran", "aba-delegacia-policia", "aba-licencas"].forEach(id => { if (document.getElementById(id)) document.getElementById(id).classList.add("hidden"); });["btn-aba-novo-aph", "btn-aba-historico", "btn-aba-uso-forca", "btn-aba-mandados", "btn-aba-detran", "btn-aba-delegacia-policia", "btn-aba-licencas"].forEach(id => { if (document.getElementById(id)) document.getElementById(id).classList.remove("ativo"); }); if (document.getElementById(idAba)) document.getElementById(idAba).classList.remove("hidden"); if (document.getElementById("btn-" + idAba)) document.getElementById("btn-" + idAba).classList.add("ativo"); atualizarAcaoLogado("EM PAINEL"); if (idAba === 'aba-licencas') { const u = JSON.parse(sessionStorage.getItem("sigo_oficial_logado")); const painelLicencas = document.getElementById('aba-licencas'); const formEmissao = document.getElementById('painel-emitir-licenca'); const formBusca = document.getElementById('painel-buscar-licenca'); if (u && u.tipo !== 'PF' && u.tipo !== 'ADMIN') { if (formEmissao) formEmissao.style.display = 'none'; if (formBusca) formBusca.classList.add('form-grid-full'); } else { if (formEmissao) formEmissao.style.display = 'block'; if (formBusca) formBusca.classList.remove('form-grid-full'); } renderizarLicencasPainel(); } if (idAba === 'aba-mandados') renderizarProcurados(); if (idAba === 'aba-delegacia-policia') renderizarBOCivisParaAnalise(); }
-window.trocarStatus = function () { const btn = document.getElementById("btn-status-servico"); if (btn.classList.contains("qap")) { btn.classList.remove("qap"); btn.classList.add("qrv"); btn.innerText = "[ QRV ] FORA DE SERVIÇO"; atualizarAcaoLogado("FORA DE SERVIÇO"); } else { btn.classList.remove("qrv"); btn.classList.add("qap"); btn.innerText = "[ QAP ] EM SERVIÇO"; atualizarAcaoLogado("EM PATRULHAMENTO"); } }
-setInterval(() => { const u = JSON.parse(sessionStorage.getItem("sigo_oficial_logado")); if (u && u.tipo !== 'ADMIN' && u.tipo !== 'CIVIL') { const rAPH = document.getElementById("aph-relato") ? document.getElementById("aph-relato").value : ""; const dAPH = document.getElementById("aph-desfecho") ? document.getElementById("aph-desfecho").value : ""; const rRUF = document.getElementById("ruf-relato") ? document.getElementById("ruf-relato").value : ""; if (rAPH || dAPH || rRUF) { localStorage.setItem("sigo_autosave_" + u.passaporte, JSON.stringify({ rAPH, dAPH, rRUF })); const ind = document.getElementById("autosave-indicator"); if (ind) { ind.classList.add("ativo"); setTimeout(() => ind.classList.remove("ativo"), 2000); } } } }, 5000);
-function recuperarAutoSave() { const u = JSON.parse(sessionStorage.getItem("sigo_oficial_logado")); if (u) { const save = JSON.parse(localStorage.getItem("sigo_autosave_" + u.passaporte)); if (save && (save.rAPH || save.dAPH || save.rRUF)) { if (document.getElementById("aph-relato") && save.rAPH) document.getElementById("aph-relato").value = save.rAPH; if (document.getElementById("aph-desfecho") && save.dAPH) document.getElementById("aph-desfecho").value = save.dAPH; if (document.getElementById("ruf-relato") && save.rRUF) document.getElementById("ruf-relato").value = save.rRUF; sigoNotify("BACKUP RESTAURADO", "Rascunho recuperado.", "aviso"); } } }
-function limparAutoSave() { const u = JSON.parse(sessionStorage.getItem("sigo_oficial_logado")); if (u) localStorage.removeItem("sigo_autosave_" + u.passaporte); }
-window.refinarRelatoIA = function (tipo) { let btn; if (tipo === 'aph') { const cr = document.getElementById("aph-relato"); const cd = document.getElementById("aph-desfecho"); const vitima = document.getElementById("aph-vitima-nome").value || "INDIVÍDUO NÃO QUALIFICADO"; const local = document.getElementById("aph-local").value || "COORDENADA INESPECÍFICA"; btn = document.getElementById("btn-ia-aph"); if (cr.value.trim() === "") { sigoNotify("ERRO DE IA", "Preencha o relato base para processamento.", "erro"); return; } btn.innerHTML = "<div class='spinner' style='width:15px;height:15px;border-width:2px;margin:0;'></div> PROCESSANDO DADOS..."; btn.style.pointerEvents = "none"; btn.classList.add("ia-highlight"); setTimeout(() => { cr.value = `SÍNTESE TÉCNICA:\nAcionamento para a localidade de ${local.toUpperCase()}. A guarnição estabeleceu perímetro de segurança. Iniciado protocolo direcionado ao alvo: ${vitima.toUpperCase()}.\n\nFATOS NARRADOS:\n"${cr.value}"\n\nSituação controlada.`; if (cd.value.trim() !== "") cd.value = `DESFECHO TÁTICO:\nApós a estabilização, procedeu-se com as regulamentações. Decisão: ${cd.value.toUpperCase()}. Encerramento no local.`; btn.innerHTML = "[ FORMALIZADO COM SUCESSO ]"; btn.style.background = "var(--success-green)"; btn.style.color = "#000"; btn.style.borderColor = "var(--success-green)"; btn.classList.remove("ia-highlight"); setTimeout(() => { btn.innerHTML = "[ REFINAR RELATO (IA) ]"; btn.style.background = ""; btn.style.color = ""; btn.style.borderColor = ""; btn.style.pointerEvents = "auto"; }, 3000); }, 2000); } else if (tipo === 'ruf') { const cr = document.getElementById("ruf-relato"); const carac = document.getElementById("ruf-caracteristicas").value.trim(); const arma = document.getElementById("ruf-arma").value; const local = document.getElementById("ruf-local").value || "VIA PÚBLICA"; btn = document.getElementById("btn-ia-ruf"); if (cr.value.trim() === "") { sigoNotify("ERRO DE IA", "Forneça a dinâmica do confronto.", "erro"); return; } btn.innerHTML = "<div class='spinner' style='width:15px;height:15px;border-width:2px;margin:0;'></div> GERANDO LAUDO..."; btn.style.pointerEvents = "none"; btn.classList.add("ia-highlight"); setTimeout(() => { let textoCarac = carac ? `Indivíduo opositor: ${carac.toUpperCase()}.` : "Perpetrador não identificado detalhadamente."; cr.value = `LAUDO PERICIAL DE USO DA FORÇA:\nEm acionamento em ${local.toUpperCase()}, deparou-se com iminente quebra da ordem legal. ${textoCarac}\n\nDiante da agressão, fez-se necessário o emprego de ${arma.toUpperCase()}, pautado no Uso Progressivo da Força.\n\nDINÂMICA ESPECÍFICA:\n"${cr.value}"`; btn.innerHTML = "[ LAUDO APLICADO ]"; btn.style.background = "var(--success-green)"; btn.style.color = "#000"; btn.style.borderColor = "var(--success-green)"; btn.classList.remove("ia-highlight"); setTimeout(() => { btn.innerHTML = "[ GERAR LAUDO (IA) ]"; btn.style.background = ""; btn.style.color = ""; btn.style.borderColor = ""; btn.style.pointerEvents = "auto"; }, 3000); }, 2000); } }
-
-window.expedirMandadoPrisao = function () { const pass = document.getElementById("mandado-passaporte").value; const motivo = document.getElementById("mandado-motivo").value.trim(); const perigo = document.getElementById("mandado-perigo").value; if (!pass || !motivo) { sigoNotify("DADOS INCOMPLETOS", "Informe ID e os Artigos Criminais.", "erro"); return; } const dbCivil = JSON.parse(localStorage.getItem("sigo_db_civis")) || {}; if (!dbCivil[pass]) { sigoNotify("ERRO", "Cidadão não existe no Gov.br.", "erro"); return; } const mandados = JSON.parse(localStorage.getItem("sigo_db_mandados")) || []; if (mandados.some(m => m.passaporte === pass && m.status === 'ATIVO')) { sigoNotify("ERRO", "Já existe um mandado ativo para este ID.", "erro"); return; } const u = JSON.parse(sessionStorage.getItem("sigo_oficial_logado")); const novoMandado = { id: "MAND-" + Math.floor(10000 + Math.random() * 90000), passaporte: pass, nomeCivil: dbCivil[pass].nome, motivo: motivo, perigo: perigo, emissor: `${u.patente} ${u.nome}`, data: new Date().toLocaleString('pt-BR'), status: "ATIVO" }; mandados.push(novoMandado); localStorage.setItem("sigo_db_mandados", JSON.stringify(mandados)); registrarLogInterno("POLICIA", u.nome, u.passaporte, `Expediu Mandado de Prisão para ID ${pass}`, "INVESTIGACAO"); enviarWebhook(WEBHOOKS.INVESTIGACAO, `🚨 MANDADO DE PRISÃO EXPEDIDO`, `**Emissor:** ${u.nome}\n**Alvo:** ${dbCivil[pass].nome} (ID: ${pass})\n**Periculosidade:** ${perigo}\n\n**Motivação / Artigos:**\n"${motivo}"`, "#b91c1c"); sigoNotify("MANDADO ATIVO", "O indivíduo agora está foragido no sistema.", "sucesso"); document.getElementById("mandado-passaporte").value = ""; document.getElementById("mandado-motivo").value = ""; renderizarProcurados(); }
-function renderizarProcurados() { const container = document.getElementById("lista-procurados-ativos"); if (!container) return; const mandados = JSON.parse(localStorage.getItem("sigo_db_mandados")) || []; const ativos = mandados.filter(m => m.status === 'ATIVO'); if (ativos.length === 0) { container.innerHTML = `<p class="font-mono" style="font-size:10px; color:#64748b;">Nenhum procurado ativo no momento.</p>`; return; } let html = ""; ativos.reverse().forEach(m => { let corPerigo = m.perigo === "ALTO" ? "var(--bombeiro-red)" : "#f97316"; html += `<div style="background:#080b12; border-left: 3px solid ${corPerigo}; padding:15px; margin-bottom:10px; border-radius:3px; border-top:1px solid #1e293b; border-right:1px solid #1e293b; border-bottom:1px solid #1e293b;" class="step-animado"><div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 5px;"><span style="color:${corPerigo}; font-size:12px; font-weight:800; letter-spacing:1px;">PROCURADO: ${m.nomeCivil}</span><span style="font-size:10px; color:#f8fafc; font-weight:800; background:#0f172a; padding:4px 8px; border-radius:2px;">ID: ${m.passaporte}</span></div><p style="font-size:10px; color:#cbd5e1; margin-bottom: 10px;"><strong>Crimes:</strong> ${m.motivo}</p><p style="font-size:9px; color:#64748b; font-family:'JetBrains Mono', monospace;"><strong>Expedidor:</strong> ${m.emissor} | Data: ${m.data}</p><button class="btn-neutro font-mono" style="padding:8px; font-size:9px; width:100%; margin-top:12px; border-color:var(--success-green); color:var(--success-green);" onclick="revogarMandado('${m.id}')">[ REGISTRAR PRISÃO / BAIXAR MANDADO ]</button></div>`; }); container.innerHTML = html; }
-window.revogarMandado = function (idMand) { if (!confirm("Atenção: Ao confirmar, o mandado será baixado e o indivíduo não será mais alertado no sistema. Confirmar Prisão/Baixa?")) return; let mandados = JSON.parse(localStorage.getItem("sigo_db_mandados")) || []; const m = mandados.find(m => m.id === idMand); if (m) { m.status = "CUMPRIDO"; localStorage.setItem("sigo_db_mandados", JSON.stringify(mandados)); const u = JSON.parse(sessionStorage.getItem("sigo_oficial_logado")); registrarLogInterno("POLICIA", u.nome, u.passaporte, `Cumpriu mandado do Civil ID ${m.passaporte}`, "INVESTIGACAO"); enviarWebhook(WEBHOOKS.INVESTIGACAO, "✅ MANDADO CUMPRIDO / BAIXADO", `O mandado contra o civil **ID ${m.passaporte}** foi baixado do sistema por ${u.nome}.`, "#059669"); sigoNotify("MANDADO BAIXADO", "Registro atualizado.", "sucesso"); renderizarProcurados(); document.getElementById("alerta-procurado-global").classList.add("hidden"); } }
-window.verificarMandadoPrisaoPainel = function (pass) { if (!pass) return; const mandados = JSON.parse(localStorage.getItem("sigo_db_mandados")) || []; const ativo = mandados.find(m => m.passaporte === pass && m.status === 'ATIVO'); const alerta = document.getElementById("alerta-procurado-global"); if (alerta) { if (ativo) { alerta.innerHTML = `[!!!] ATENÇÃO: O INDIVÍDUO CONSULTADO (ID: ${pass}) POSSUI MANDADO DE PRISÃO ATIVO POR ${ativo.motivo.toUpperCase()} [!!!]`; alerta.classList.remove("hidden"); sigoNotify("MANDADO ATIVO", "Alvo procurado pela justiça!", "erro"); let audioCtx = new (window.AudioContext || window.webkitAudioContext)(); let oscillator = audioCtx.createOscillator(); oscillator.type = 'square'; oscillator.frequency.setValueAtTime(800, audioCtx.currentTime); oscillator.connect(audioCtx.destination); oscillator.start(); oscillator.stop(audioCtx.currentTime + 0.5); } else { alerta.classList.add("hidden"); } } }
-
-// ARQUIVOS NO DISCORD (BO e RUF com envio de .txt anexo)
-function gerarArquivoTextoBO(b) { let doc = `==========================================================\n   SECRETARIA DE SEGURANÇA PÚBLICA DO ESTADO\n   SISTEMA INTEGRADO DE GESTÃO OPERACIONAL (S.I.G.O.)\n==========================================================\n\nDOCUMENTO: ${b.tipo} | PROTOCOLO: ${b.protocolo}\nDATA E HORA: ${b.data}\n\n[ 1. DADOS DA GUARNIÇÃO ]\nAGENTE REDATOR: ${b.oficialNome} (ID: ${b.oficialPass})\nVIATURA / SETOR: ${b.viatura} ${b.area ? '- ' + b.area : ''}\n\n`; if (b.tipo === "APH") { doc += `[ 2. IDENTIFICAÇÃO DO ENVOLVIDO ]\nNOME: ${b.vitima} (ID: ${b.vitimaPass || "NÃO QUALIFICADO"})\n\n[ 3. NARRATIVA DOS FATOS ]\nLOCAL EXATO: ${b.local}\n${b.relato}\n\n[ 4. DESFECHO / PROVIDÊNCIA ]\n${b.desfecho || "NÃO INFORMADO"}\n\n`; } else { doc += `[ 2. DADOS DO CONFRONTO ]\nLOCAL: ${b.local}\nNÍVEL DE FORÇA: ${b.nivel}\nARMAMENTO: ${b.arma} (DISPAROS: ${b.disparos})\n\n[ 3. OPOSITOR E DANOS ]\nCARACTERÍSTICAS: ${b.alvo}\nLESÕES: ${b.lesoes} | SOCORRO: ${b.socorro}\n\n[ 4. LAUDO PERICIAL ]\n${b.relato}\n\n`; } doc += `==========================================================\nAssinatura Digital Verificada - Gov.BR\n`; return doc; }
-
-window.assinarEnviarBOCB = function () { const ofNome = document.getElementById("aph-socorrista-nome").value; const ofPass = document.getElementById("aph-socorrista-pass").value; const viatura = document.getElementById("aph-viatura").value.trim(); const area = document.getElementById("aph-area").value; const vitNome = document.getElementById("aph-vitima-nome").value.trim(); const vitPass = document.getElementById("aph-vitima-pass").value.trim(); const local = document.getElementById("aph-local").value.trim(); const relato = document.getElementById("aph-relato").value.trim(); const desfecho = document.getElementById("aph-desfecho").value.trim(); if (!viatura || !area || !vitNome || !local || !relato) { sigoNotify("CAMPOS OBRIGATÓRIOS", "Preencha os campos essenciais.", "erro"); return; } const btn = document.getElementById("btn-transmitir"); btn.innerText = "GERANDO PDF E TRANSMITINDO..."; btn.style.pointerEvents = "none"; const protocolo = "BO-" + Math.floor(100000 + Math.random() * 900000); const dataStr = new Date().toLocaleString('pt-BR'); const novoBoletim = { tipo: "APH", protocolo: protocolo, data: dataStr, oficialNome: ofNome, oficialPass: ofPass, viatura: viatura, area: area, vitima: vitNome, vitimaPass: vitPass, local: local, relato: relato, desfecho: desfecho }; let hist = JSON.parse(localStorage.getItem("sigo_historico_" + ofPass)) || []; hist.push(novoBoletim); localStorage.setItem("sigo_historico_" + ofPass, JSON.stringify(hist)); registrarLogInterno("POLICIA", ofNome, ofPass, `Registrou Boletim ${protocolo} (Vítima: ${vitNome})`, "BOLETIM"); const arquivoConteudo = gerarArquivoTextoBO(novoBoletim); const arquivoNome = `${protocolo}.txt`; enviarWebhook(WEBHOOKS.APH, `📝 BOLETIM DE OCORRÊNCIA [${protocolo}]`, `**Redator:** ${ofNome} (ID: ${ofPass})\n**VTR / Local:** ${viatura} - ${local}\n**Indivíduo:** ${vitNome} (ID: ${vitPass || "N/A"})\n\n*(Relatório completo em anexo no documento .txt)*`, "#3b82f6", null, [], arquivoConteudo, arquivoNome); limparAutoSave(); sigoNotify("SUCESSO LOCAL", "BO assinado e transmitido com anexo.", "aviso");["aph-viatura", "aph-area", "aph-vitima-nome", "aph-vitima-pass", "aph-local", "aph-relato", "aph-desfecho"].forEach(id => { if (document.getElementById(id)) document.getElementById(id).value = ""; }); btn.innerHTML = "[ ASSINAR E ENVIAR ARQUIVO AO DISCORD ]"; btn.style.pointerEvents = "auto"; carregarMeusBoletinsPainel(); mudarAba('aba-historico'); }
-window.assinarEnviarRUF = function () { const ofNome = document.getElementById("aph-socorrista-nome").value; const ofPass = document.getElementById("aph-socorrista-pass").value; const viatura = document.getElementById("ruf-viatura").value.trim(); const local = document.getElementById("ruf-local").value.trim(); const nivel = document.getElementById("ruf-nivel").value; const disparos = document.getElementById("ruf-disparos").value || "0"; const arma = document.getElementById("ruf-arma").value.trim(); const carac = document.getElementById("ruf-caracteristicas").value.trim(); const lesoes = document.getElementById("ruf-lesoes").value; const socorro = document.getElementById("ruf-socorro").value; const relato = document.getElementById("ruf-relato").value.trim(); let alvoPassExtracted = ""; let idMatch = carac.match(/(?:ID|Passaporte)[:\s-]*(\d{1,4})/i); if (idMatch) alvoPassExtracted = idMatch[1]; if (!viatura || !local || !nivel || !arma || !carac || !relato) { sigoNotify("CAMPOS OBRIGATÓRIOS", "Preencha todos os campos do RUF.", "erro"); return; } const btn = document.getElementById("btn-transmitir-ruf"); btn.innerText = "GERANDO LAUDO PDF..."; btn.style.pointerEvents = "none"; const protocolo = "RUF-" + Math.floor(100000 + Math.random() * 900000); const dataStr = new Date().toLocaleString('pt-BR'); const novoBoletim = { tipo: "RUF", protocolo: protocolo, data: dataStr, oficialNome: ofNome, oficialPass: ofPass, viatura: viatura, local: local, nivel: nivel, disparos: disparos, arma: arma, alvo: carac, alvoPass: alvoPassExtracted, lesoes: lesoes, socorro: socorro, relato: relato }; let hist = JSON.parse(localStorage.getItem("sigo_historico_" + ofPass)) || []; hist.push(novoBoletim); localStorage.setItem("sigo_historico_" + ofPass, JSON.stringify(hist)); registrarLogInterno("POLICIA", ofNome, ofPass, `Registrou Uso de Força ${protocolo}`, "BOLETIM"); const arquivoConteudo = gerarArquivoTextoBO(novoBoletim); const arquivoNome = `${protocolo}-LAUDO.txt`; enviarWebhook(WEBHOOKS.RUF, `⚠️ RELATÓRIO DE USO DA FORÇA [${protocolo}]`, `**Agente:** ${ofNome} (ID: ${ofPass})\n**VTR / Local:** ${viatura} - ${local}\n**Escalonamento:** ${nivel}\n\n*(Laudo pericial detalhado em anexo no documento .txt)*`, "#dc2626", null, [], arquivoConteudo, arquivoNome); limparAutoSave(); sigoNotify("SUCESSO LOCAL", "RUF assinado e transmitido com anexo.", "aviso");["ruf-viatura", "ruf-local", "ruf-nivel", "ruf-disparos", "ruf-arma", "ruf-caracteristicas", "ruf-lesoes", "ruf-socorro", "ruf-relato"].forEach(id => { if (document.getElementById(id)) document.getElementById(id).value = ""; }); btn.innerHTML = "[ REGISTRAR E ENVIAR ARQUIVO AO DISCORD ]"; btn.style.pointerEvents = "auto"; carregarMeusBoletinsPainel(); mudarAba('aba-historico'); }
-
-// =========================================================================
-// 8. MASTER ADMIN - EDIÇÃO DE FOTOS CIVIS E SUSPENSÃO
-// =========================================================================
-window.carregarDadosAdmin = function () { if (!document.getElementById("topbar-nome-admin")) return; const admin = JSON.parse(sessionStorage.getItem("sigo_oficial_logado")); if (!admin || admin.tipo !== "ADMIN") { window.location.href = "index.html"; return; } document.getElementById("topbar-nome-admin").innerText = admin.patente + " " + admin.nome; atualizarDashboard(); renderizarEfetivo('TODOS'); renderizarBatalhoes(); renderizarAuditoria(); renderizarSolicitacoes(); atualizarAcaoLogado("SUPERVISIONANDO TERMINAL"); if (localStorage.getItem("sigo_manutencao") === "true") { const btn = document.getElementById("btn-toggle-manutencao"); btn.classList.add("ativa"); btn.innerText = "[ ATIVAR REDE DA TROPA ]"; } }
-window.mudarAbaAdmin = function (idAba) { ["aba-dashboard", "aba-efetivo", "aba-batalhoes", "aba-auditoria", "aba-solicitacoes", "aba-logs"].forEach(id => { if (document.getElementById(id)) document.getElementById(id).classList.add("hidden"); });["btn-aba-dashboard", "btn-aba-efetivo", "btn-aba-batalhoes", "btn-aba-auditoria", "btn-aba-solicitacoes", "btn-aba-logs"].forEach(id => { if (document.getElementById(id)) document.getElementById(id).classList.remove("ativo"); }); document.getElementById(idAba).classList.remove("hidden"); document.getElementById("btn-" + idAba).classList.add("ativo"); if (idAba === 'aba-dashboard') atualizarDashboard(); if (idAba === 'aba-solicitacoes') renderizarSolicitacoes(); if (idAba === 'aba-logs') renderizarLogsAdmin(); atualizarAcaoLogado("VERIFICANDO " + idAba.replace('aba-', '').toUpperCase()); }
-function atualizarDashboard() { if (!document.getElementById("stat-efetivo")) return; const dbMilitar = JSON.parse(localStorage.getItem("sigo_db_usuarios")) || {}; const dbCivil = JSON.parse(localStorage.getItem("sigo_db_civis")) || {}; document.getElementById("stat-efetivo").innerText = Object.keys(dbMilitar).length; if (document.getElementById("stat-civis")) document.getElementById("stat-civis").innerText = Object.keys(dbCivil).length; document.getElementById("stat-batalhoes").innerText = (JSON.parse(localStorage.getItem("sigo_db_batalhoes")) || []).length; let totalBol = 0; Object.keys(dbMilitar).forEach(pass => { totalBol += (JSON.parse(localStorage.getItem("sigo_historico_" + pass)) || []).length; }); document.getElementById("stat-boletins").innerText = totalBol; }
-window.alternarManutencao = function () { const btn = document.getElementById("btn-toggle-manutencao"); const u = JSON.parse(sessionStorage.getItem("sigo_oficial_logado")); if (localStorage.getItem("sigo_manutencao") === "true") { localStorage.setItem("sigo_manutencao", "false"); btn.classList.remove("ativa"); btn.innerText = "[ DESATIVAR REDE DA TROPA ]"; registrarLogInterno("ADMIN", u.nome, u.passaporte, `Desativou a Manutenção do Sistema`, "SISTEMA"); sigoNotify("SISTEMA ONLINE", "Servidor religado.", "sucesso"); } else { localStorage.setItem("sigo_manutencao", "true"); btn.classList.add("ativa"); btn.innerText = "[ ATIVAR REDE DA TROPA ]"; registrarLogInterno("ADMIN", u.nome, u.passaporte, `Ativou a Manutenção do Sistema`, "SISTEMA"); sigoNotify("MANUTENÇÃO", "Acesso da tropa revogado.", "aviso"); } }
-
-window.setFiltro = function (tipo, botaoObj) { filtroAtual = tipo; document.querySelectorAll('.btn-filtro').forEach(b => { if (!b.id.includes('log') && !b.id.includes('sub')) b.classList.remove('ativo') }); botaoObj.classList.add('ativo'); renderizarEfetivo(tipo); }
-window.renderizarEfetivo = function (tipoBusca = filtroAtual) { if (!document.getElementById("lista-efetivo")) return; const dbMilitar = JSON.parse(localStorage.getItem("sigo_db_usuarios")) || {}; const dbCivil = JSON.parse(localStorage.getItem("sigo_db_civis")) || {}; const lista = document.getElementById("lista-efetivo"); const termo = document.getElementById("busca-efetivo").value.toLowerCase(); lista.innerHTML = ""; Object.values(dbMilitar).forEach(u => { if ((tipoBusca === 'TODOS' || u.tipo === tipoBusca) && (u.nome.toLowerCase().includes(termo) || u.passaporte.includes(termo) || u.corp.toLowerCase().includes(termo))) { let corCard = u.tipo === "ADMIN" ? "var(--admin-gold)" : (u.tipo === "BOMBEIRO" ? "var(--bombeiro-red)" : (u.tipo === "PF" ? "var(--pf-black)" : (u.tipo === "PRF" ? "var(--prf-yellow)" : "var(--pm-blue)"))); let dot = u.online ? '<span class="status-dot online"></span>' : '<span class="status-dot offline"></span>'; lista.innerHTML += `<div class="card-user" style="border-top: 3px solid ${corCard}; ${u.status === 'SUSPENSO' ? 'opacity:0.4; border-color:var(--bombeiro-red);' : ''}" onclick="abrirPerfilUsuario('${u.passaporte}', 'MILITAR')"><div class="card-user-header"><span class="user-pass">ID: ${u.passaporte}</span><span class="user-tipo">${u.tipo}</span></div><p class="user-nome">${dot} ${u.patente} ${u.nome}</p><p class="user-corp">${u.corp}</p></div>`; } }); if (tipoBusca === 'TODOS' || tipoBusca === 'CIVIL') { Object.values(dbCivil).forEach(c => { if (c.nome.toLowerCase().includes(termo) || c.passaporte.includes(termo) || (c.codigoUnico && c.codigoUnico.includes(termo.toUpperCase()))) { lista.innerHTML += `<div class="card-user" style="border-top: 3px solid var(--success-green); ${c.status === 'SUSPENSO' ? 'opacity:0.4; border-color:var(--bombeiro-red);' : ''}" onclick="abrirPerfilUsuario('${c.passaporte}', 'CIVIL')"><div class="card-user-header"><span class="user-pass" style="color:#cbd5e1;">ID: ${c.passaporte}</span><span class="user-tipo" style="background:rgba(5, 150, 105, 0.2); color:var(--success-green); border:1px solid var(--success-green);">CIDADÃO</span></div><p class="user-nome">${c.nome}</p><p class="user-corp">Cód. Único: ${c.codigoUnico ? c.codigoUnico.toUpperCase() : 'N/A'}</p></div>`; } }); } }
-
-function carregarMeusBoletinsPainel() { const dadosSalvos = JSON.parse(sessionStorage.getItem("sigo_oficial_logado")); if (!dadosSalvos) return; renderizarCardsOperacionais(JSON.parse(localStorage.getItem("sigo_historico_" + dadosSalvos.passaporte)) || []); }
-window.filtrarBoletins = function () { const termo = document.getElementById("busca-boletim").value.toLowerCase(); const mem = JSON.parse(localStorage.getItem("sigo_historico_" + JSON.parse(sessionStorage.getItem("sigo_oficial_logado")).passaporte)) || []; renderizarCardsOperacionais(mem.filter(b => (b.protocolo.toLowerCase().includes(termo) || b.local.toLowerCase().includes(termo) || b.relato.toLowerCase().includes(termo) || (b.vitima && b.vitima.toLowerCase().includes(termo)) || (b.alvo && b.alvo.toLowerCase().includes(termo))))); }
-function renderizarCardsOperacionais(lista) { const listaHtml = document.getElementById("lista-meus-boletins"); if (!listaHtml) return; if (lista.length === 0) { listaHtml.innerHTML = `<div class="alerta font-mono" style="border-left-color:#334155; background:#0f172a; color:#64748b;">NENHUM REGISTRO LOCALIZADO.</div>`; return; } listaHtml.innerHTML = "";[...lista].reverse().forEach(b => { let corBorda = b.tipo === "RUF" ? "var(--bombeiro-dark)" : "var(--pm-blue)"; let icone = b.tipo === "RUF" ? "[ RUF ]" : "[ BO ]"; let resumo = b.tipo === "RUF" ? `Alvo: ${b.alvo.substring(0, 25)}...` : `Envolvido: ${b.vitima}`; listaHtml.innerHTML += `<div class="card-boletim step-animado" style="border-left-color: ${corBorda};" onclick="abrirBoletimPainel('${b.protocolo}', '${b.oficialPass}')"><div class="card-topo"><span class="card-titulo">${icone} ${b.protocolo}</span><span class="card-data">${b.data}</span></div><p class="card-detalhe"><strong>VTR:</strong> ${b.viatura}</p><p class="card-detalhe"><strong>QTH:</strong> ${b.local}</p><p class="card-detalhe"><strong>${resumo}</strong></p></div>`; }); }
-
-window.abrirBoletimPainel = function (proto, passaporteProprietario = null) {
-    if (!passaporteProprietario) { passaporteProprietario = JSON.parse(sessionStorage.getItem("sigo_oficial_logado")).passaporte; }
-    const mem = JSON.parse(localStorage.getItem("sigo_historico_" + passaporteProprietario)) || [];
-    const b = mem.find(x => x.protocolo === proto);
-    if (b) {
-        document.getElementById("modal-protocolo").innerText = b.protocolo;
-        const divConteudo = document.getElementById("conteudo-modal-dinamico");
-        let htmlDoc = "";
-        if (b.tipo === "APH") {
-            htmlDoc += `<div style="text-align:center; border-bottom:2px solid #334155; padding-bottom:15px; margin-bottom:20px;"><h3 style="font-size:16px; font-weight:800; text-transform:uppercase; color:#0f172a;">SECRETARIA DE SEGURANÇA PÚBLICA</h3><p style="font-size:10px; color:#334155;">BOLETIM DE OCORRÊNCIA OFICIAL</p></div><p style="font-size:11px; margin-bottom:5px; color:#334155;"><strong>REDATOR:</strong> ${b.oficialNome} (ID: ${b.oficialPass})</p><p style="font-size:11px; margin-bottom:5px; color:#334155;"><strong>VTR/SETOR:</strong> ${b.viatura} - ${b.area}</p><p style="font-size:11px; margin-bottom:20px; color:#334155;"><strong>QTH:</strong> ${b.local}</p><div class="titulo-detalhe">ENVOLVIDOS</div><p style="font-size:11px; color:#334155;"><strong>Indivíduo:</strong> ${b.vitima} (ID: ${b.vitimaPass || "N/A"})</p><div class="titulo-detalhe" style="margin-top:20px;">NARRATIVA DOS FATOS</div><div class="caixa-texto-leitura">${b.relato}</div><div class="titulo-detalhe" style="margin-top:20px;">DESFECHO DA OCORRÊNCIA</div><div class="caixa-texto-leitura">${b.desfecho || "NÃO INFORMADO"}</div>`;
-        } else {
-            htmlDoc += `<div style="text-align:center; border-bottom:2px solid #7f1d1d; padding-bottom:15px; margin-bottom:20px;"><h3 style="font-size:16px; font-weight:800; color:#991b1b; text-transform:uppercase;">SECRETARIA DE SEGURANÇA PÚBLICA</h3><p style="font-size:10px; color:#991b1b;">RELATÓRIO DE USO DA FORÇA (RUF)</p></div><p style="font-size:11px; margin-bottom:5px; color:#334155;"><strong>OPERADOR:</strong> ${b.oficialNome} (ID: ${b.oficialPass})</p><p style="font-size:11px; margin-bottom:20px; color:#334155;"><strong>VTR/LOCAL:</strong> ${b.viatura} | ${b.local}</p><div class="titulo-detalhe txt-vermelho">ESCALONAMENTO E ARMAS</div><p style="font-size:11px; margin-bottom:5px; color:#334155;"><strong>Nível:</strong> ${b.nivel}</p><p style="font-size:11px; margin-bottom:10px; color:#334155;"><strong>Armamento:</strong> ${b.arma} | <strong>Disparos:</strong> ${b.disparos}</p><div class="titulo-detalhe txt-vermelho">OPOSITOR E DANOS</div><p style="font-size:11px; margin-bottom:5px; color:#334155;"><strong>Alvo:</strong> ${b.alvo}</p><p style="font-size:11px; margin-bottom:10px; color:#334155;"><strong>Lesões:</strong> ${b.lesoes} | <strong>Socorro:</strong> ${b.socorro}</p><div class="titulo-detalhe txt-vermelho">LAUDO PERICIAL</div><div class="caixa-texto-leitura">${b.relato}</div>`;
+    const t = document.createElement("div");
+    t.className = `sigo-toast ${tp}`;
+    t.innerHTML = `<span class="toast-titulo">[ ${ti} ]</span><span class="font-mono">${m}</span>`;
+    c.appendChild(t);
+    setTimeout(() => {
+        t.style.animation = "fadeOut 0.3s ease forwards";
+        setTimeout(() => t.remove(), 300);
+    }, 4500);
+};
+window.sigoConfirm = function (tx) {
+    return new Promise((r) => {
+        let c = window.$("sigo-popup-container");
+        if (!c) {
+            c = document.createElement("div");
+            c.id = "sigo-popup-container";
+            c.style =
+                "position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:99999;display:flex;justify-content:center;align-items:center;";
+            document.body.appendChild(c);
         }
-        divConteudo.innerHTML = htmlDoc; document.getElementById("modal-boletim").classList.remove("hidden");
+        c.style.pointerEvents = "auto";
+        c.style.background = "rgba(0,0,0,0.8)";
+        c.innerHTML = `<div class="step-animado" style="background:#0f172a;border:2px solid var(--warning-yellow);padding:30px;border-radius:4px;text-align:center;max-width:400px;"><h3 style="color:var(--warning-yellow);font-family:'JetBrains Mono';font-size:16px;margin-bottom:15px;">[ VERIFICAÇÃO ]</h3><p style="color:#cbd5e1;font-size:12px;margin-bottom:25px;">${tx}</p><div style="display:flex;gap:15px;justify-content:center;"><button id="btn-conf-sim" class="btn-entrar font-mono" style="background:var(--success-green);color:#000;width:auto;padding:10px 20px;">[ SIM ]</button><button id="btn-conf-nao" class="btn-perigo font-mono" style="width:auto;padding:10px 20px;">[ NÃO ]</button></div></div>`;
+        window.$("btn-conf-sim").onclick = () => {
+            c.innerHTML = "";
+            c.style.pointerEvents = "none";
+            c.style.background = "transparent";
+            r(true);
+        };
+        window.$("btn-conf-nao").onclick = () => {
+            c.innerHTML = "";
+            c.style.pointerEvents = "none";
+            c.style.background = "transparent";
+            r(false);
+        };
+    });
+};
+window.sigoPrompt = function (tx, ip = false) {
+    return new Promise((r) => {
+        let c = window.$("sigo-popup-container");
+        if (!c) {
+            c = document.createElement("div");
+            c.id = "sigo-popup-container";
+            c.style =
+                "position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:99999;display:flex;justify-content:center;align-items:center;";
+            document.body.appendChild(c);
+        }
+        c.style.pointerEvents = "auto";
+        c.style.background = "rgba(0,0,0,0.8)";
+        c.innerHTML = `<div class="step-animado" style="background:#0f172a;border:2px solid var(--pm-blue);padding:30px;border-radius:4px;text-align:center;max-width:400px;"><h3 style="color:var(--pm-blue);font-family:'JetBrains Mono';font-size:16px;margin-bottom:15px;">[ ENTRADA DE DADOS ]</h3><p style="color:#cbd5e1;font-size:12px;margin-bottom:15px;">${tx}</p><input type="${ip ? "password" : "text"}" id="prompt-input" class="input-busca font-mono" style="width:100%;margin-bottom:20px;text-align:center;" autofocus><div style="display:flex;gap:15px;justify-content:center;"><button id="btn-prm-sim" class="btn-entrar font-mono" style="background:var(--pm-blue);color:#000;width:auto;padding:10px 20px;">[ OK ]</button><button id="btn-prm-nao" class="btn-perigo font-mono" style="width:auto;padding:10px 20px;">[ CANCELAR ]</button></div></div>`;
+        window.$("prompt-input").focus();
+        window.$("btn-prm-sim").onclick = () => {
+            const v = window.$("prompt-input").value;
+            c.innerHTML = "";
+            c.style.pointerEvents = "none";
+            c.style.background = "transparent";
+            r(v);
+        };
+        window.$("btn-prm-nao").onclick = () => {
+            c.innerHTML = "";
+            c.style.pointerEvents = "none";
+            c.style.background = "transparent";
+            r(null);
+        };
+    });
+};
+
+window.marcarOffline = function () {
+    const u = JSON.parse(sessionStorage.getItem("sigo_oficial_logado"));
+    if (u && u.tipo !== "CIVIL") {
+        const db = JSON.parse(localStorage.getItem("sigo_db_usuarios"));
+        if (db && db[u.passaporte]) {
+            db[u.passaporte].online = false;
+            db[u.passaporte].ultimaAcao = "OFFLINE";
+            localStorage.setItem("sigo_db_usuarios", JSON.stringify(db));
+        }
     }
-}
+};
+window.deslogarSistema = function (f = false) {
+    if (!f) window.marcarOffline();
+    sessionStorage.removeItem("sigo_oficial_logado");
+    window.location.href = "index.html";
+};
 
-window.abrirModalUsuario = function () { document.getElementById("titulo-modal-user").innerText = "EMITIR CREDENCIAL OPERACIONAL"; document.getElementById("cad-user-pass").value = ""; document.getElementById("cad-user-pass").disabled = false; document.getElementById("cad-user-pin").value = ""; document.getElementById("cad-user-pos").value = ""; document.getElementById("cad-user-nome").value = ""; document.getElementById("cad-user-patente").value = ""; document.getElementById("cad-user-corp").value = ""; document.getElementById("cad-user-foto").value = ""; document.getElementById("modal-cad-usuario").classList.remove("hidden"); }
-window.fecharModalUsuario = function () { document.getElementById("modal-cad-usuario").classList.add("hidden"); }
-window.salvarUsuario = function () { const pass = document.getElementById("cad-user-pass").value; const senha = document.getElementById("cad-user-pin").value; const pos = document.getElementById("cad-user-pos").value; const nome = document.getElementById("cad-user-nome").value; const tipo = document.getElementById("cad-user-tipo").value; const patente = document.getElementById("cad-user-patente").value; const corp = document.getElementById("cad-user-corp").value; const fotoUrl = document.getElementById("cad-user-foto").value.trim() || FOTO_PADRAO; if (!pass || !senha || !nome) { sigoNotify("ERRO", "Preencha Passaporte, Senha e Nome.", "erro"); return; } if (tipo === "ADMIN" && !pos) { sigoNotify("ERRO", "A conta Master exige a Pós-Senha.", "erro"); return; } const db = JSON.parse(localStorage.getItem("sigo_db_usuarios")) || {}; let isNew = !db[pass]; db[pass] = { passaporte: pass, senha: senha, posSenha: pos || "123", nome: nome, tipo: tipo, patente: patente, corp: corp, foto: fotoUrl, status: (isNew ? "ATIVO" : db[pass].status), criacao: (isNew ? new Date().toLocaleString('pt-BR') : db[pass].ip), ip: (isNew ? gerarIPFake() : db[pass].ip), online: (isNew ? false : db[pass].online), ultimaAcao: (isNew ? "CRIADO NO GABINETE" : db[pass].ultimaAcao), ultimoAcesso: (isNew ? "NUNCA LOGOU" : db[pass].ultimoAcesso) }; localStorage.setItem("sigo_db_usuarios", JSON.stringify(db)); fecharModalUsuario(); renderizarEfetivo(); atualizarDashboard(); sigoNotify("SUCESSO", "Credencial salva na matriz.", "sucesso"); const adminLogado = JSON.parse(sessionStorage.getItem("sigo_oficial_logado")); registrarLogInterno("ADMIN", adminLogado.nome, adminLogado.passaporte, `${isNew ? 'Criou' : 'Editou'} a credencial do Agente ${nome} (ID: ${pass})`, "SISTEMA"); enviarWebhook(WEBHOOKS.GERAL, `⚙️ CREDENCIAL ${isNew ? 'EMITIDA' : 'ATUALIZADA'}`, `**Autoridade:** ${adminLogado.nome}\n**Agente:** ${patente} ${nome} (ID: ${pass})\n**Lotação:** ${corp}\n**Tipo:** ${tipo}`, "#b45309", fotoUrl); }
+window.carregarConfiguracoesGlobais = function () {
+    const c = JSON.parse(localStorage.getItem("sigo_global_ui")) || DEFAULT_CONFIG;
+    if (window.$("favicon-global")) window.$("favicon-global").href = c.brasao;
+    ["logo-splash", "logo-header-login", "logo-sidebar", "logo-sidebar-admin"].forEach((id) => {
+        if (window.$(id)) window.$(id).src = c.brasao;
+    });
+    ["titulo-splash", "titulo-sigo-login", "titulo-sidebar", "titulo-sidebar-admin"].forEach((id) =>
+        window.txt(id, c.sigla)
+    );
+    window.txt("nome-sec-login", c.nome);
+};
+window.aplicarTravaModulos = function () {
+    const m = JSON.parse(localStorage.getItem("sigo_modulos")) || DEFAULT_MODULES;
+    Object.keys(m).forEach((k) => {
+        document.querySelectorAll(`.module-${k}`).forEach((e) => {
+            e.style.display = m[k] ? "" : "none";
+        });
+    });
+};
+window.atualizarAcaoLogado = function (a) {
+    const u = JSON.parse(sessionStorage.getItem("sigo_oficial_logado"));
+    if (u && u.tipo !== "CIVIL") {
+        const db = JSON.parse(localStorage.getItem("sigo_db_usuarios"));
+        if (db && db[u.passaporte]) {
+            db[u.passaporte].ultimaAcao = a.toUpperCase();
+            localStorage.setItem("sigo_db_usuarios", JSON.stringify(db));
+        }
+    }
+};
 
-window.abrirPerfilUsuario = function (pass, typeClass) {
-    const conteudo = document.getElementById("conteudo-perfil-usuario");
-    if (typeClass === 'MILITAR') {
-        const db = JSON.parse(localStorage.getItem("sigo_db_usuarios")); const u = db[pass]; let txtSusp = u.status === "ATIVO" ? "[ SUSPENDER ACESSO ]" : "[ REATIVAR CONTA ]"; let statusGeral = u.online ? `<span class="status-dot online"></span> ONLINE` : `<span class="status-dot offline"></span> OFFLINE`;
-        conteudo.innerHTML = `<div style="display:flex; gap:20px; align-items:center; margin-bottom:25px; border-bottom: 1px solid #1e293b; padding-bottom: 20px;"><div class="moldura-foto" style="width:100px; height:120px;"><img src="${u.foto || FOTO_PADRAO}"></div><div style="flex:1;"><p class="label-pequena">PATENTE E NOME</p><h4 class="nome-destaque" style="margin-bottom:5px;">${u.patente} ${u.nome}</h4><p class="label-pequena">ID / TIPO</p><h4 style="color:var(--pm-light); font-size:14px; font-family:'JetBrains Mono', monospace;">${u.passaporte} - ${u.tipo}</h4></div></div><div class="form-grid" style="margin-bottom:15px; background: #080b12; padding: 15px; border-radius:3px; border: 1px solid #1e293b;"><div><p class="label-pequena">STATUS DO AGENTE</p><p style="font-size:12px; font-weight:800; color:#f8fafc; font-family:'JetBrains Mono', monospace; margin-top:5px;">${statusGeral}</p></div><div><p class="label-pequena">ATIVIDADE ATUAL</p><p style="font-size:10px; color:var(--admin-gold); font-family:'JetBrains Mono', monospace; margin-top:5px;">${u.ultimaAcao}</p></div></div><div class="form-grid" style="margin-bottom:15px; border-bottom: 1px solid #1e293b; padding-bottom: 15px;"><div><p class="label-pequena">IP DE REDE</p><p style="font-size:12px; color:#cbd5e1; font-family:'JetBrains Mono', monospace; margin-top:5px;">${u.ip}</p></div><div><p class="label-pequena">ÚLTIMO LOGIN</p><p style="font-size:11px; color:#cbd5e1; font-family:'JetBrains Mono', monospace; margin-top:5px;">${u.ultimoAcesso || 'N/A'}</p></div></div><div class="botoes-modal" style="margin-top:20px;"><button class="btn-neutro" onclick="editarUsuarioDoPerfil('${u.passaporte}')">[ EDITAR FICHA ]</button><button class="btn-neutro" style="color:var(--warning-yellow); border-color:#d97706;" onclick="alternarStatusUsuario('${u.passaporte}', 'MILITAR')">${txtSusp}</button><button class="btn-perigo" onclick="excluirUsuarioPermanente('${u.passaporte}', 'MILITAR')">[ EXCLUIR ]</button></div>`;
+window.inicializarBanco = function () {
+    if (!localStorage.getItem("sigo_v6_reset")) {
+        const d = new Date().toLocaleString("pt-BR");
+        const u = {
+            3447: {
+                passaporte: "3447",
+                nome: "Comando Master",
+                tipo: "ADMIN",
+                patente: "Coronel",
+                corp: "Gabinete",
+                senha: "1012",
+                posSenha: "123",
+                status: "ATIVO",
+                criacao: d,
+                ip: "127.0.0.1",
+                online: false,
+                ultimaAcao: "Offline",
+                ultimoAcesso: "Nunca",
+                foto: DEFAULT_CONFIG.brasao,
+            },
+            "0000": {
+                passaporte: "0000",
+                nome: "Inspetor Deus",
+                tipo: "DEV",
+                patente: "DEV",
+                corp: "Sistema",
+                senha: "0000",
+                posSenha: "000",
+                status: "ATIVO",
+                criacao: d,
+                ip: "127.0.0.1",
+                online: false,
+                ultimaAcao: "Offline",
+                ultimoAcesso: "Nunca",
+                foto: DEFAULT_CONFIG.brasao,
+            },
+        };
+        [
+            "sigo_db_civis",
+            "sigo_solicitacoes",
+            "sigo_investigacoes",
+            "sigo_db_veiculos",
+            "sigo_db_multas",
+            "sigo_db_logs",
+            "sigo_db_licencas",
+            "sigo_db_mandados",
+            "sigo_bos_civis",
+        ].forEach((k) => {
+            if (!localStorage.getItem(k))
+                localStorage.setItem(k, k === "sigo_db_civis" || k === "sigo_db_veiculos" ? "{}" : "[]");
+        });
+        if (!localStorage.getItem("sigo_db_usuarios")) localStorage.setItem("sigo_db_usuarios", JSON.stringify(u));
+        if (!localStorage.getItem("sigo_db_batalhoes"))
+            localStorage.setItem(
+                "sigo_db_batalhoes",
+                JSON.stringify(["Comando Geral", "1º GB", "22º BPM/M", "DEIC", "Base PF", "Base PRF"])
+            );
+        if (!localStorage.getItem("sigo_global_ui"))
+            localStorage.setItem("sigo_global_ui", JSON.stringify(DEFAULT_CONFIG));
+        if (!localStorage.getItem("sigo_modulos"))
+            localStorage.setItem("sigo_modulos", JSON.stringify(DEFAULT_MODULES));
+        localStorage.setItem("sigo_manutencao", "false");
+        localStorage.setItem("sigo_v6_reset", "true");
+    }
+    window.carregarConfiguracoesGlobais();
+    window.aplicarTravaModulos();
+};
+window.inicializarBanco();
+window.addEventListener("storage", (e) => {
+    if (e.key === "sigo_manutencao") window.verificarBloqueios();
+    if (e.key === "sigo_global_ui") window.carregarConfiguracoesGlobais();
+    if (e.key === "sigo_modulos") window.aplicarTravaModulos();
+});
+window.addEventListener("beforeunload", window.marcarOffline);
+document.addEventListener("DOMContentLoaded", () => {
+    setTimeout(() => {
+        if (window.$("splash-screen")) {
+            window.$("splash-screen").style.opacity = "0";
+            setTimeout(() => window.hid("splash-screen"), 1000);
+        }
+    }, 2500);
+});
+
+window.verificarBloqueios = function () {
+    const m = localStorage.getItem("sigo_manutencao") === "true";
+    const u = JSON.parse(sessionStorage.getItem("sigo_oficial_logado"));
+    if (u) {
+        const db =
+            u.tipo === "CIVIL"
+                ? JSON.parse(localStorage.getItem("sigo_db_civis"))
+                : JSON.parse(localStorage.getItem("sigo_db_usuarios"));
+        if (!db || !db[u.passaporte]) return window.deslogarSistema(true);
+        if (db[u.passaporte].status === "SUSPENSO") {
+            window.shw("tela-suspensa");
+            return;
+        }
+    }
+    if (m && (!u || (u.tipo !== "ADMIN" && u.tipo !== "DEV"))) {
+        window.shw("tela-manutencao");
+        window.hid("main-container");
+        if (document.querySelector(".dashboard-layout"))
+            document.querySelector(".dashboard-layout").classList.add("hidden");
     } else {
-        const db = JSON.parse(localStorage.getItem("sigo_db_civis")); const c = db[pass];
-        if (!c.codigoUnico || c.codigoUnico === "N/A") { c.codigoUnico = gerarCodigoCidadao(); db[pass].codigoUnico = c.codigoUnico; localStorage.setItem("sigo_db_civis", JSON.stringify(db)); }
-        let txtSuspCivil = c.status === "SUSPENSO" ? "[ REATIVAR CIDADÃO ]" : "[ BLOQUEAR GOV.BR ]";
-        const invs = JSON.parse(localStorage.getItem("sigo_investigacoes")) || []; const asMinhas = invs.filter(i => i.alvoPass === pass); let htmlInvs = "";
-        if (asMinhas.length === 0) { htmlInvs = `<div class="caixa-alerta-inv"><p class="label-pequena" style="color:var(--investigacao-purple); margin-bottom:8px;">[ MÓDULO DE INVESTIGAÇÃO ]</p><p>Nenhum inquérito criminal vinculado a este cidadão.</p></div>`; } else { htmlInvs = `<div class="caixa-alerta-inv"><p class="label-pequena" style="color:var(--investigacao-purple); margin-bottom:8px;">[ MÓDULO DE INVESTIGAÇÃO ATIVO ]</p>`; asMinhas.reverse().forEach(inv => { let corStatus = inv.status === 'ABERTO' ? 'var(--bombeiro-red)' : 'var(--success-green)'; htmlInvs += `<div style="background:#05070a; border:1px solid #1e293b; padding:10px; border-radius:3px; margin-bottom:10px;"><div style="display:flex; justify-content:space-between; border-bottom:1px solid #1e293b; padding-bottom:5px; margin-bottom:5px;"><span style="font-size:10px; color:#d8b4fe; font-weight:800; font-family:'JetBrains Mono', monospace;">${inv.id}</span><span style="font-size:9px; color:${corStatus}; font-weight:800;">${inv.status}</span></div><p style="font-size:10px; color:#cbd5e1; margin-bottom:5px;"><strong>Investigador:</strong> ${inv.oficialNome}</p><p style="font-size:11px; color:#94a3b8; font-style:italic; font-family:'JetBrains Mono', monospace;">"${inv.relato}"</p>${inv.status === 'ABERTO' ? `<button class="btn-neutro" style="width:100%; padding:5px; margin-top:10px; font-size:9px;" onclick="fecharInquerito('${inv.id}', '${pass}')">[ ARQUIVAR INQUÉRITO ]</button>` : ''}</div>`; }); htmlInvs += `</div>`; }
-        conteudo.innerHTML = `<div style="display:flex; gap:20px; align-items:center; margin-bottom:20px; border-bottom: 1px solid #1e293b; padding-bottom: 15px;"><div class="moldura-foto" style="width:80px; height:100px;"><img src="${c.foto || 'https://cdn-icons-png.flaticon.com/512/1077/1077114.png'}"></div><div style="flex:1;"><p class="label-pequena">CIDADÃO CIVIL</p><h4 class="nome-destaque" style="margin-top:5px;">${c.nome}</h4><p class="label-pequena mt-5">PASSAPORTE / RG</p><h4 style="color:var(--success-green); font-size:16px; margin-top:5px; font-family:'JetBrains Mono', monospace;">${c.passaporte}</h4></div></div><div class="form-grid" style="margin-bottom:15px; background: #080b12; padding: 15px; border-radius:3px; border: 1px solid #1e293b;"><div><p class="label-pequena">IP DE REDE</p><p style="font-size:12px; color:#cbd5e1; margin-top:5px; font-family:'JetBrains Mono', monospace;">${c.ip || 'N/A'}</p></div><div><p class="label-pequena">ÚLTIMO ACESSO</p><p style="font-size:11px; color:#cbd5e1; margin-top:5px; font-family:'JetBrains Mono', monospace;">${c.ultimoAcesso || 'Nunca'}</p></div></div><div class="form-grid" style="margin-bottom:15px; border-bottom: 1px solid #1e293b; padding-bottom: 15px;"><div><p class="label-pequena">IDADE E SANGUE</p><p style="font-size:12px; color:#cbd5e1; margin-top:5px; font-family:'JetBrains Mono', monospace;">${c.idade} ANOS | TIPO: ${c.sangue}</p></div><div><p class="label-pequena">CÓDIGO ÚNICO</p><p style="font-size:13px; color:var(--admin-gold); margin-top:5px; font-family:'JetBrains Mono', monospace; font-weight:800;">${c.codigoUnico.toUpperCase()}</p></div></div>${htmlInvs}<div class="botoes-modal"><button class="btn-entrar" style="background:var(--investigacao-purple); border-color:#6b21a8;" onclick="novaInvestigacaoPrompt('${c.passaporte}')">[ + INICIAR INQUÉRITO ]</button><button class="btn-neutro" onclick="mudarFotoCivil('${c.passaporte}')">[ EDITAR FOTO ]</button><button class="btn-neutro" style="color:var(--warning-yellow); border-color:#d97706;" onclick="alternarStatusUsuario('${c.passaporte}', 'CIVIL')">${txtSuspCivil}</button><button class="btn-perigo" onclick="excluirUsuarioPermanente('${c.passaporte}', 'CIVIL')">[ EXCLUIR ]</button></div>`;
+        window.hid("tela-manutencao");
+        window.hid("tela-suspensa");
+        window.shw("main-container");
+        if (document.querySelector(".dashboard-layout"))
+            document.querySelector(".dashboard-layout").classList.remove("hidden");
     }
-    document.getElementById("modal-perfil-usuario").classList.remove("hidden");
-}
+};
+window.verificarBloqueios();
 
-window.mudarFotoCivil = function (pass) {
-    const novaURL = prompt("Cole a URL (Discord/Imgur) da foto do Cidadão:");
-    if (!novaURL) return;
+window.registrarLogInterno = function (cat, an, ap, d, m) {
+    const l = JSON.parse(localStorage.getItem("sigo_db_logs")) || [];
+    l.push({
+        id: "LOG-" + Math.random().toString(36).substring(2, 8).toUpperCase(),
+        data: new Date().toLocaleString("pt-BR"),
+        categoria: cat,
+        modulo: m,
+        autor: an,
+        passaporte: ap,
+        detalhes: d,
+    });
+    localStorage.setItem("sigo_db_logs", JSON.stringify(l));
+};
+window.enviarWebhook = function (u, t, d, c, th = null, f = [], ac = null, an = null) {
+    if (!u || u.includes("SEU_LINK")) return;
+    const cf = JSON.parse(localStorage.getItem("sigo_global_ui")) || DEFAULT_CONFIG;
+    const op = JSON.parse(sessionStorage.getItem("sigo_oficial_logado"));
+    let opTxt = "";
+    if (op && op.tipo !== "CIVIL") {
+        opTxt = `\n\n**[ OPERADOR RESPONSÁVEL ]**\n👮 ${op.patente} ${op.nome} (ID: ${op.passaporte})`;
+    }
+    const p = {
+        username: `${cf.sigla} | Governamental`,
+        avatar_url: cf.brasao,
+        embeds: [
+            {
+                title: t,
+                description: d + opTxt,
+                color: parseInt(c.replace("#", ""), 16),
+                fields: f,
+                thumbnail: th ? { url: th } : null,
+                footer: { text: cf.nome, icon_url: cf.brasao },
+                timestamp: new Date().toISOString(),
+            },
+        ],
+    };
+    let o = { method: "POST" };
+    if (ac && an) {
+        const fd = new FormData();
+        fd.append("payload_json", JSON.stringify(p));
+        fd.append("file", new Blob([ac], { type: "text/plain" }), an);
+        o.body = fd;
+    } else {
+        o.headers = { "Content-Type": "application/json" };
+        o.body = JSON.stringify(p);
+    }
+    fetch(u, o).catch((e) => console.error("[S.I.G.O.]", e));
+};
+window.enviarWebhookAuditoriaIA = function (nM, p, log) {
+    const u = WEBHOOKS.CORREGEDORIA;
+    if (!u || u.includes("SEU_LINK")) return;
+    const cf = JSON.parse(localStorage.getItem("sigo_global_ui")) || DEFAULT_CONFIG;
+    const py = {
+        username: "S.I.G.O. | Auditoria I.A.",
+        avatar_url: cf.brasao,
+        embeds: [
+            {
+                title: "🧠 [ REGISTRO DA I.A. ]",
+                description: "Log bruto do laudo gerado.",
+                color: 15844367,
+                fields: [
+                    { name: "👮 Operador", value: `${nM} (ID: ${p})`, inline: true },
+                    { name: "📝 Log Bruto", value: log, inline: false },
+                ],
+                footer: { text: "Auditoria Interna" },
+                timestamp: new Date().toISOString(),
+            },
+        ],
+    };
+    fetch(u, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(py) }).catch((e) =>
+        console.error(e)
+    );
+};
+window.enviarImagemDiscord = function (d, n, w, t) {
+    const tg = window.$(d);
+    if (!tg) return;
+    const u = WEBHOOKS[w];
+    if (!u || u.includes("SEU_LINK")) return window.sigoNotify("ERRO", "Webhook não configurada.", "erro");
+    const b = event.target;
+    const tb = b.innerText;
+    b.innerText = "[ ENVIANDO... ]";
+    b.style.pointerEvents = "none";
+    b.style.opacity = "0.7";
+    html2canvas(tg, { backgroundColor: "#ffffff", scale: 2 }).then((c) => {
+        c.toBlob((bl) => {
+            const cf = JSON.parse(localStorage.getItem("sigo_global_ui")) || DEFAULT_CONFIG;
+            const op = JSON.parse(sessionStorage.getItem("sigo_oficial_logado"));
+            let opTxt = op ? `\n**Redigido por:** ${op.patente} ${op.nome} (${op.passaporte})` : "";
+            const fd = new FormData();
+            const p = {
+                username: `${cf.sigla} | Autos Oficiais`,
+                avatar_url: cf.brasao,
+                embeds: [
+                    {
+                        title: `📄 ${t}`,
+                        description: "Documento oficial validado e indexado ao banco de dados estadual." + opTxt,
+                        color: 3447003,
+                        image: { url: `attachment://${n}` },
+                        footer: { text: "Secretaria de Segurança Pública" },
+                        timestamp: new Date().toISOString(),
+                    },
+                ],
+            };
+            fd.append("payload_json", JSON.stringify(p));
+            fd.append("file", bl, n);
+            fetch(u, { method: "POST", body: fd })
+                .then((r) => {
+                    if (r.ok) window.sigoNotify("TRANSMITIDO", "Documento enviado!", "sucesso");
+                    else throw new Error();
+                })
+                .catch(() => window.sigoNotify("ERRO", "Falha no Discord.", "erro"))
+                .finally(() => {
+                    b.innerText = tb;
+                    b.style.pointerEvents = "auto";
+                    b.style.opacity = "1";
+                });
+        }, "image/png");
+    });
+};
+
+window.voltarInicio = function () {
+    [
+        "step-identificacao",
+        "step-pin-militar",
+        "step-pin-civil",
+        "step-cadastro-civil",
+        "step-login-civil",
+        "step-login-militar",
+    ].forEach(window.hid);
+    if (window.$("main-container")) window.$("main-container").classList.remove("form-expandido");
+    window.shw("header-identificacao");
+    usuarioTemporario = null;
+    civilPassAtual = null;
+    etapaLogin = 0;
+    window.shw("step-identificacao");
+    window.setVal("input-cpf", "");
+    if (window.$("input-cpf")) window.$("input-cpf").focus();
+};
+window.iniciarBusca = function () {
+    const p = window.val("input-cpf");
+    if (!p || p.length > 4) return window.sigoNotify("ERRO", "ID inválido.", "erro");
+    if (localStorage.getItem("sigo_manutencao") === "true" && p !== "3447" && p !== "0000")
+        return window.sigoNotify("NEGADO", "Manutenção.", "erro");
+    window.shw("loading-overlay");
+    setTimeout(() => {
+        window.hid("loading-overlay");
+        window.processarRoteamento(p);
+    }, 800);
+};
+window.processarRoteamento = function (p) {
+    const dm = JSON.parse(localStorage.getItem("sigo_db_usuarios")) || {},
+        dc = JSON.parse(localStorage.getItem("sigo_db_civis")) || {};
+    [
+        "step-identificacao",
+        "step-pin-militar",
+        "step-pin-civil",
+        "step-cadastro-civil",
+        "step-login-civil",
+        "step-login-militar",
+    ].forEach(window.hid);
+    if (dm[p]) {
+        if (dm[p].status === "SUSPENSO") {
+            window.sigoNotify("REVOGADO", "Credencial suspensa.", "erro");
+            window.shw("step-identificacao");
+            return;
+        }
+        usuarioTemporario = dm[p];
+        window.setVal("input-pin", "");
+        window.shw("step-pin-militar");
+        if (window.$("input-pin")) window.$("input-pin").focus();
+    } else if (dc[p]) {
+        if (dc[p].status === "SUSPENSO") {
+            window.sigoNotify("REVOGADO", "Conta bloqueada.", "erro");
+            window.shw("step-identificacao");
+            return;
+        }
+        civilPassAtual = p;
+        window.setVal("input-pin-civil", "");
+        window.shw("step-pin-civil");
+        if (window.$("input-pin-civil")) window.$("input-pin-civil").focus();
+    } else {
+        window.sigoNotify("AVISO", "Iniciando registro.", "aviso");
+        window.setVal("cad-civil-pass", p);
+        if (window.$("main-container")) window.$("main-container").classList.add("form-expandido");
+        window.shw("step-cadastro-civil");
+        if (window.$("cad-civil-nome")) window.$("cad-civil-nome").focus();
+    }
+};
+window.validarPin = function () {
+    const s = window.val("input-pin");
+    if (s === usuarioTemporario.senha) {
+        usuarioTemporario.online = true;
+        usuarioTemporario.ultimoAcesso = new Date().toLocaleString("pt-BR");
+        usuarioTemporario.ultimaAcao = "LOGANDO";
+        if (!usuarioTemporario.ip) usuarioTemporario.ip = gerarIPFake();
+        const db = JSON.parse(localStorage.getItem("sigo_db_usuarios"));
+        db[usuarioTemporario.passaporte] = usuarioTemporario;
+        localStorage.setItem("sigo_db_usuarios", JSON.stringify(db));
+        [
+            "step-identificacao",
+            "step-pin-militar",
+            "step-pin-civil",
+            "step-cadastro-civil",
+            "step-login-civil",
+            "step-login-militar",
+        ].forEach(window.hid);
+        window.shw("step-login-militar");
+        window.txt("nome-militar", usuarioTemporario.patente + " " + usuarioTemporario.nome);
+        window.txt("corp-militar", usuarioTemporario.corp);
+        window.txt("pass-militar", usuarioTemporario.passaporte);
+        if (window.$("foto-militar")) window.$("foto-militar").src = usuarioTemporario.foto || DEFAULT_CONFIG.brasao;
+        window.sigoNotify("LIBERADO", "Autenticado.", "sucesso");
+        window.registrarLogInterno(
+            "POLICIA",
+            usuarioTemporario.nome,
+            usuarioTemporario.passaporte,
+            `Sessão iniciada.`,
+            "LOGIN"
+        );
+    } else {
+        window.sigoNotify("FALHA", "Senha incorreta.", "erro");
+        window.setVal("input-pin", "");
+    }
+};
+window.validarPinCivil = function () {
+    const db = JSON.parse(localStorage.getItem("sigo_db_civis")) || {},
+        c = db[civilPassAtual],
+        s = window.val("input-pin-civil");
+    if (!c.senha) {
+        if (s.length < 4) return window.sigoNotify("AVISO", "Mínimo 4 dígitos.", "aviso");
+        c.senha = s;
+        localStorage.setItem("sigo_db_civis", JSON.stringify(db));
+        window.sigoNotify("SALVA", "Senha Gov registrada.", "sucesso");
+        window.autenticarCivilPre(c);
+    } else if (s === c.senha) {
+        window.sigoNotify("LIBERADO", "Acesso Gov.br.", "sucesso");
+        window.autenticarCivilPre(c);
+    } else {
+        window.sigoNotify("FALHA", "Senha incorreta.", "erro");
+        window.setVal("input-pin-civil", "");
+    }
+};
+window.autenticarMilitar = function () {
+    sessionStorage.setItem("sigo_oficial_logado", JSON.stringify(usuarioTemporario));
+    window.location.href =
+        usuarioTemporario.tipo === "ADMIN" || usuarioTemporario.tipo === "DEV" ? "admin.html" : "painel.html";
+};
+window.salvarCadastroCivil = function () {
+    const p = window.val("cad-civil-pass"),
+        s = window.val("cad-civil-senha"),
+        d = window.val("cad-civil-discord"),
+        t = window.val("cad-civil-tel");
+    if (!d || t.length < 14 || !s || s.length < 4)
+        return window.sigoNotify("ERRO", "Preencha Tel, Discord e Senha.", "erro");
+    const n = {
+        passaporte: p,
+        senha: s,
+        codigoUnico: gerarCodigoCidadao(),
+        nome: window.val("cad-civil-nome"),
+        idade: window.val("cad-civil-idade"),
+        sangue: window.val("cad-civil-sangue"),
+        estadoCivil: window.val("cad-civil-estado"),
+        telefone: t,
+        endereco: window.val("cad-civil-endereco"),
+        emprego: window.val("cad-civil-emprego"),
+        estudo: window.val("cad-civil-estudo"),
+        email: window.val("cad-civil-email"),
+        discord: d,
+        foto: "https://cdn-icons-png.flaticon.com/512/1077/1077114.png",
+        status: "ATIVO",
+        criacao: new Date().toLocaleString("pt-BR"),
+        ip: gerarIPFake(),
+        tipo: "CIVIL",
+    };
+    if (!n.nome || !n.idade) return window.sigoNotify("ERRO", "Faltam campos.", "erro");
+    const db = JSON.parse(localStorage.getItem("sigo_db_civis")) || {};
+    db[p] = n;
+    localStorage.setItem("sigo_db_civis", JSON.stringify(db));
+    window.sigoNotify("CONCLUÍDO", "Base atualizada.", "sucesso");
+    window.registrarLogInterno("CIVIL", n.nome, n.passaporte, `Novo civil.`, "LOGIN");
+    window.enviarWebhook(WEBHOOKS.GERAL, "👤 NOVO REGISTRO", `**Nome:** ${n.nome}\n**ID:** ${n.passaporte}`, "#059669");
+    window.autenticarCivilPre(n);
+};
+window.autenticarCivilPre = function (c) {
+    [
+        "step-identificacao",
+        "step-pin-militar",
+        "step-pin-civil",
+        "step-cadastro-civil",
+        "step-login-civil",
+        "step-login-militar",
+    ].forEach(window.hid);
+    civilPassAtual = c.passaporte;
+    window.hid("header-identificacao");
+    if (window.$("main-container")) window.$("main-container").classList.add("form-expandido");
+    window.txt("nome-civil-cadastrado", c.nome);
+    if (window.$("foto-civil-perfil"))
+        window.$("foto-civil-perfil").src = c.foto || "https://cdn-icons-png.flaticon.com/512/1077/1077114.png";
     const db = JSON.parse(localStorage.getItem("sigo_db_civis"));
-    db[pass].foto = novaURL; localStorage.setItem("sigo_db_civis", JSON.stringify(db));
-    abrirPerfilUsuario(pass, 'CIVIL'); sigoNotify("FOTO ATUALIZADA", "A foto do cidadão foi alterada no sistema.", "sucesso");
-}
-
-window.editarUsuarioDoPerfil = function (pass) { document.getElementById("modal-perfil-usuario").classList.add("hidden"); const u = JSON.parse(localStorage.getItem("sigo_db_usuarios"))[pass]; document.getElementById("titulo-modal-user").innerText = "ATUALIZAR CREDENCIAL OPERACIONAL"; document.getElementById("cad-user-pass").value = u.passaporte; document.getElementById("cad-user-pass").disabled = true; document.getElementById("cad-user-pin").value = u.senha; document.getElementById("cad-user-pos").value = u.posSenha; document.getElementById("cad-user-nome").value = u.nome; document.getElementById("cad-user-tipo").value = u.tipo; document.getElementById("cad-user-patente").value = u.patente; document.getElementById("cad-user-corp").value = u.corp; document.getElementById("cad-user-foto").value = u.foto === FOTO_PADRAO ? "" : u.foto; document.getElementById("modal-cad-usuario").classList.remove("hidden"); }
-window.alternarStatusUsuario = function (pass, tipoDb) {
-    if (pass === "3447") { sigoNotify("NEGADO", "Master não pode ser suspenso.", "erro"); return; }
-    if (tipoDb === 'MILITAR') { const db = JSON.parse(localStorage.getItem("sigo_db_usuarios")); db[pass].status = db[pass].status === "ATIVO" ? "SUSPENSO" : "ATIVO"; localStorage.setItem("sigo_db_usuarios", JSON.stringify(db)); }
-    else { const db = JSON.parse(localStorage.getItem("sigo_db_civis")); db[pass].status = db[pass].status === "ATIVO" ? "SUSPENSO" : "ATIVO"; localStorage.setItem("sigo_db_civis", JSON.stringify(db)); }
-    document.getElementById("modal-perfil-usuario").classList.add("hidden"); renderizarEfetivo(); sigoNotify("STATUS ALTERADO", `O acesso foi modificado.`, "aviso");
-}
-window.excluirUsuarioPermanente = function (pass, typeClass) { if (pass === "3447") { sigoNotify("NEGADO", "Master Core não pode ser removido.", "erro"); return; } const u = JSON.parse(sessionStorage.getItem("sigo_oficial_logado")); if (typeClass === 'MILITAR') { const db = JSON.parse(localStorage.getItem("sigo_db_usuarios")); registrarLogInterno("ADMIN", u.nome, u.passaporte, `Deletou permanentemente o Agente ID ${pass}`, "SISTEMA"); delete db[pass]; localStorage.setItem("sigo_db_usuarios", JSON.stringify(db)); } else { const db = JSON.parse(localStorage.getItem("sigo_db_civis")); registrarLogInterno("ADMIN", u.nome, u.passaporte, `Deletou permanentemente o Civil ID ${pass}`, "SISTEMA"); delete db[pass]; localStorage.setItem("sigo_db_civis", JSON.stringify(db)); } document.getElementById("modal-perfil-usuario").classList.add("hidden"); renderizarEfetivo(); atualizarDashboard(); sigoNotify("EXCLUSÃO", "Registro deletado da base global.", "sucesso"); }
-
-window.adicionarBatalhao = function () { const input = document.getElementById("novo-batalhao-nome"); if (!input) return; const nome = input.value.trim(); if (!nome) { sigoNotify("ERRO", "Digite o nome da Unidade.", "erro"); return; } const btls = JSON.parse(localStorage.getItem("sigo_db_batalhoes")) || []; btls.push(nome); localStorage.setItem("sigo_db_batalhoes", JSON.stringify(btls)); input.value = ""; renderizarBatalhoes(); atualizarDashboard(); sigoNotify("SISTEMA", "Lotação inserida.", "sucesso"); }
-window.renderizarBatalhoes = function () { if (!document.getElementById("lista-batalhoes")) return; const lista = document.getElementById("lista-batalhoes"); const btls = JSON.parse(localStorage.getItem("sigo_db_batalhoes")) || []; lista.innerHTML = ""; btls.forEach((b, i) => { lista.innerHTML += `<div class="caixa-batalhao"><span style="font-weight:600; font-size:11px; color:#e2e8f0; text-transform:uppercase;">${b}</span><button class="btn-remover-oficial" onclick="removerBatalhao(${i})">[ REMOVER ]</button></div>`; }); }
-window.removerBatalhao = function (index) { const btls = JSON.parse(localStorage.getItem("sigo_db_batalhoes")) || []; btls.splice(index, 1); localStorage.setItem("sigo_db_batalhoes", JSON.stringify(btls)); renderizarBatalhoes(); atualizarDashboard(); sigoNotify("SISTEMA", "Lotação excluída.", "aviso"); }
-
-window.renderizarAuditoria = function () { if (!document.getElementById("lista-auditoria")) return; const listaHtml = document.getElementById("lista-auditoria"); const termo = document.getElementById("busca-auditoria").value.toLowerCase(); const db = JSON.parse(localStorage.getItem("sigo_db_usuarios")); let todosBoletins = []; Object.keys(db).forEach(pass => { todosBoletins = todosBoletins.concat(JSON.parse(localStorage.getItem("sigo_historico_" + pass)) || []); }); if (todosBoletins.length === 0) { listaHtml.innerHTML = `<div class="alerta font-mono" style="border-color:#334155; background:#0b0f19; color:#64748b;">BANCO DE DADOS VAZIO.</div>`; return; } const filtrados = todosBoletins.reverse().filter(b => (b.protocolo.toLowerCase().includes(termo) || b.oficialPass.includes(termo) || (b.vitima && b.vitima.toLowerCase().includes(termo)) || (b.alvo && b.alvo.toLowerCase().includes(termo)))); listaHtml.innerHTML = ""; filtrados.forEach(b => { let cor = b.tipo === "RUF" ? "var(--bombeiro-dark)" : "var(--pm-blue)"; let icone = b.tipo === "RUF" ? "[ RUF ]" : "[ BO ]"; listaHtml.innerHTML += `<div class="card-boletim" style="border-left-color: ${cor}; cursor:pointer;" onclick="abrirBoletimPainel('${b.protocolo}', '${b.oficialPass}')"><div class="card-topo"><span class="card-titulo">${icone} ${b.protocolo}</span><span class="card-data">${b.data}</span></div><p class="card-detalhe"><strong>AGENTE:</strong> ${b.oficialNome} (ID: ${b.oficialPass})</p><p class="card-detalhe"><strong>QTH:</strong> ${b.local}</p></div>`; }); }
-window.renderizarSolicitacoes = function () { if (!document.getElementById("lista-solicitacoes")) return; const listaHtml = document.getElementById("lista-solicitacoes"); const sol = JSON.parse(localStorage.getItem("sigo_solicitacoes")) || []; if (sol.length === 0) { listaHtml.innerHTML = `<div class="alerta font-mono" style="border-color:var(--success-green); color:var(--success-green);">NENHUMA SOLICITAÇÃO PENDENTE NO GABINETE.</div>`; return; } listaHtml.innerHTML = ""; sol.reverse().forEach((s, index) => { listaHtml.innerHTML += `<div class="card-solicitacao"><div class="card-solicitacao-header"><span class="solicitacao-tipo">[ PEDIDO DE ${s.tipo} ] - ${s.protocolo}</span><span class="solicitacao-data">${s.data}</span></div><p style="font-size:10px; color:#cbd5e1; margin-bottom:8px; text-transform:uppercase;"><strong>REQUERENTE:</strong> ${s.oficial} (ID: ${s.oficialPass})</p><div style="background:#05070a; padding:15px; border-radius:4px; border:1px solid #334155; font-size:11px; color:#94a3b8; font-style:italic; margin-bottom:15px; font-family:'JetBrains Mono', monospace;">" ${s.motivo} "</div><div style="display:flex; gap:10px;"><button class="btn-neutro" style="background:var(--success-green); color:#000; border:none;" onclick="aprovarSolicitacao(${index})">[ AUTORIZAR ]</button><button class="btn-perigo" onclick="negarSolicitacao(${index})">[ NEGAR ]</button></div></div>`; }); }
-
-window.solicitarAlteracao = function (tipo) { const protocolo = document.getElementById("modal-protocolo").innerText; const u = JSON.parse(sessionStorage.getItem("sigo_oficial_logado")); const motivo = prompt(`Justificativa técnica para ${tipo} do BO ${protocolo}:`); if (!motivo) { sigoNotify("ABORTADO", "Justificativa obrigatória.", "erro"); return; } const solicitacoes = JSON.parse(localStorage.getItem("sigo_solicitacoes")) || []; solicitacoes.push({ id: "SOL-" + Math.floor(1000 + Math.random() * 9000), protocolo: protocolo, tipo: tipo, oficial: `${u.patente} ${u.nome}`, oficialPass: u.passaporte, motivo: motivo, data: new Date().toLocaleString('pt-BR'), status: 'PENDENTE' }); localStorage.setItem("sigo_solicitacoes", JSON.stringify(solicitacoes)); enviarWebhook(WEBHOOKS.CORREGEDORIA, `⚖️ SOLICITAÇÃO DE ${tipo}`, `**Agente:** ${u.nome} (ID: ${u.passaporte})\n**Documento:** ${protocolo}\n**Motivo:** "${motivo}"`, "#d97706"); sigoNotify("AUDITORIA", `Pedido encaminhado ao Comando.`, "sucesso"); document.getElementById('modal-boletim').classList.add('hidden'); }
-window.aprovarSolicitacao = function (index) { const sol = JSON.parse(localStorage.getItem("sigo_solicitacoes")) || []; const pedido = sol[index]; const u = JSON.parse(sessionStorage.getItem("sigo_oficial_logado")); if (pedido.tipo === 'EXCLUSAO') { const hist = JSON.parse(localStorage.getItem("sigo_historico_" + pedido.oficialPass)) || []; const novoHist = hist.filter(b => b.protocolo !== pedido.protocolo); localStorage.setItem("sigo_historico_" + pedido.oficialPass, JSON.stringify(novoHist)); registrarLogInterno("ADMIN", u.nome, u.passaporte, `Deletou o boletim ${pedido.protocolo}`, "CORREGEDORIA"); enviarWebhook(WEBHOOKS.CORREGEDORIA, "✅ DESPACHO DEFERIDO", `Boletim **${pedido.protocolo}** EXCLUÍDO.`, "#059669"); sigoNotify("DESPACHO", `Boletim excluído.`, "sucesso"); } else { sigoNotify("DESPACHO", `Autorizado (Pode redigir retificação).`, "sucesso"); } sol.splice(index, 1); localStorage.setItem("sigo_solicitacoes", JSON.stringify(sol)); renderizarSolicitacoes(); renderizarAuditoria(); }
-window.negarSolicitacao = function (index) { const sol = JSON.parse(localStorage.getItem("sigo_solicitacoes")) || []; const pedido = sol[index]; enviarWebhook(WEBHOOKS.CORREGEDORIA, "❌ DESPACHO INDEFERIDO", `A solicitação para o boletim **${pedido.protocolo}** foi negada.`, "#e11d48"); sol.splice(index, 1); localStorage.setItem("sigo_solicitacoes", JSON.stringify(sol)); sigoNotify("DESPACHO", "Solicitação indeferida.", "aviso"); renderizarSolicitacoes(); }
-
-window.setFiltroLog = function (tipo, btn) { filtroLogAtual = tipo; const botoes = btn.parentElement.querySelectorAll('.btn-filtro'); botoes.forEach(b => b.classList.remove('ativo')); btn.classList.add('ativo'); renderizarLogsAdmin(); }
-window.renderizarLogsAdmin = function () { const container = document.getElementById("lista-logs-sistema"); if (!container) return; const logs = JSON.parse(localStorage.getItem("sigo_db_logs")) || []; const termo = document.getElementById("busca-logs-admin") ? document.getElementById("busca-logs-admin").value.toLowerCase() : ""; let html = ""; const filtrados = logs.reverse().filter(l => { const atendeFiltro = filtroLogAtual === 'TODOS' || l.modulo === filtroLogAtual || l.categoria === filtroLogAtual; const atendeBusca = l.autor.toLowerCase().includes(termo) || l.passaporte.includes(termo) || l.detalhes.toLowerCase().includes(termo); return atendeFiltro && atendeBusca; }); if (filtrados.length === 0) { container.innerHTML = `<div class="alerta font-mono" style="border-color:var(--admin-gold); color:var(--admin-gold);">NENHUM REGISTRO ENCONTRADO.</div>`; return; } filtrados.forEach(log => { let catClass = `log-cat-${log.categoria}`; html += `<div class="log-card ${catClass} step-animado"><div><span style="font-size:9px; color:#64748b; font-family:'JetBrains Mono', monospace; letter-spacing:1px;">[ ${log.data} ] - MÓDULO: ${log.modulo}</span><p style="font-size:12px; color:#f8fafc; font-weight:800; margin-top:5px; text-transform:uppercase;">${log.detalhes}</p><p style="font-size:10px; color:#94a3b8; font-family:'JetBrains Mono', monospace; margin-top:3px;">Emissor / Autor: ${log.autor} (ID: ${log.passaporte})</p></div><span style="font-size:8px; background:#1e293b; padding:4px 8px; border-radius:2px; color:#cbd5e1; font-family:'JetBrains Mono', monospace;">${log.id}</span></div>`; }); container.innerHTML = html; }
-
-window.novaInvestigacaoPrompt = function (alvoPass) { const relato = prompt("INQUÉRITO DE INVESTIGAÇÃO: Descreva os fatos ou anotações criminais:"); if (!relato || relato.trim() === "") { sigoNotify("CANCELADO", "Inquérito necessita de fundamentação.", "erro"); return; } const u = JSON.parse(sessionStorage.getItem("sigo_oficial_logado")); const invs = JSON.parse(localStorage.getItem("sigo_investigacoes")) || []; const novaInv = { id: "INV-" + Math.floor(10000 + Math.random() * 90000), alvoPass: alvoPass, oficialNome: `${u.patente} ${u.nome} (ID: ${u.passaporte})`, relato: relato.trim(), data: new Date().toLocaleString('pt-BR'), status: "ABERTO" }; invs.push(novaInv); localStorage.setItem("sigo_investigacoes", JSON.stringify(invs)); registrarLogInterno("POLICIA", u.nome, u.passaporte, `Abriu inquérito ${novaInv.id} para o Civil ID ${alvoPass}`, "INVESTIGACAO"); enviarWebhook(WEBHOOKS.INVESTIGACAO, "🔍 INQUÉRITO CRIMINAL INICIADO", `**Investigador:** ${u.nome}\n**Alvo ID:** ${alvoPass}\n**Inquérito:** ${novaInv.id}\n\n**Motivação:**\n"${relato}"`, "#7e22ce"); sigoNotify("INQUÉRITO ABERTO", "Anotação salva na ficha do cidadão.", "sucesso"); abrirPerfilUsuario(alvoPass, 'CIVIL'); }
-window.fecharInquerito = function (idInv, alvoPass) { if (!confirm("Tem certeza que deseja ARQUIVAR (fechar) este inquérito?")) return; const invs = JSON.parse(localStorage.getItem("sigo_investigacoes")) || []; const index = invs.findIndex(i => i.id === idInv); if (index > -1) { invs[index].status = "ARQUIVADO"; localStorage.setItem("sigo_investigacoes", JSON.stringify(invs)); const u = JSON.parse(sessionStorage.getItem("sigo_oficial_logado")); registrarLogInterno("POLICIA", u.nome, u.passaporte, `Arquivou inquérito ${idInv} do Civil ID ${alvoPass}`, "INVESTIGACAO"); enviarWebhook(WEBHOOKS.INVESTIGACAO, "📂 INQUÉRITO ARQUIVADO", `O inquérito **${idInv}** contra o civil ID **${alvoPass}** foi arquivado por ${u.nome}.`, "#059669"); sigoNotify("INQUÉRITO FECHADO", "Anotação arquivada.", "sucesso"); abrirPerfilUsuario(alvoPass, 'CIVIL'); } }
-
-window.mudarSubAbaDetran = function (subAba) { document.getElementById("sub-detran-consulta").classList.add("hidden"); document.getElementById("sub-detran-registro").classList.add("hidden"); document.getElementById("sub-detran-pagamentos").classList.add("hidden"); document.getElementById("btn-sub-consulta").classList.remove("ativo"); document.getElementById("btn-sub-registro").classList.remove("ativo"); document.getElementById("btn-sub-pagamentos").classList.remove("ativo"); document.getElementById("sub-detran-" + subAba).classList.remove("hidden"); document.getElementById("btn-sub-" + subAba).classList.add("ativo"); if (subAba === 'pagamentos') renderizarMultasParaBaixa(); }
-window.registrarVeiculoBanco = function () { const pass = document.getElementById("reg-veiculo-passaporte").value; const placa = document.getElementById("reg-veiculo-placa").value.toUpperCase(); const modelo = document.getElementById("reg-veiculo-modelo").value.trim(); const cor = document.getElementById("reg-veiculo-cor").value.trim(); if (!pass || !placa || !modelo || !cor) { sigoNotify("ERRO", "Preencha todos os dados.", "erro"); return; } if (placa.length < 7) { sigoNotify("ERRO", "Placa deve ter 7 caracteres.", "erro"); return; } const civilDb = JSON.parse(localStorage.getItem("sigo_db_civis")) || {}; if (!civilDb[pass]) { sigoNotify("ERRO", "Passaporte civil não encontrado.", "erro"); return; } const veiculosDb = JSON.parse(localStorage.getItem("sigo_db_veiculos")) || {}; if (veiculosDb[placa]) { sigoNotify("ERRO", "Placa já existente.", "erro"); return; } veiculosDb[placa] = { placa: placa, proprietario: pass, modelo: modelo, cor: cor, status: "REGULAR", dataRegistro: new Date().toLocaleString('pt-BR') }; localStorage.setItem("sigo_db_veiculos", JSON.stringify(veiculosDb)); const u = JSON.parse(sessionStorage.getItem("sigo_oficial_logado")); registrarLogInterno("POLICIA", u.nome, u.passaporte, `Emplacou veículo ${placa} (Dono ID: ${pass})`, "DETRAN"); enviarWebhook(WEBHOOKS.DETRAN, "🚗 NOVO VEÍCULO REGISTRADO (DETRAN)", `**Oficial Responsável:** ${u.nome}\n**Placa Emplacada:** ${placa}\n**Proprietário ID:** ${pass}\n**Modelo/Cor:** ${modelo} - ${cor}`, "#15803d"); sigoNotify("SUCESSO", "Veículo emplacado.", "sucesso"); document.getElementById("reg-veiculo-passaporte").value = ""; document.getElementById("reg-veiculo-placa").value = ""; document.getElementById("reg-veiculo-modelo").value = ""; document.getElementById("reg-veiculo-cor").value = ""; }
-window.consultarPlacaPolicial = function () { const placa = document.getElementById("busca-placa-detran").value.trim().toUpperCase(); if (placa.length < 7) { sigoNotify("ERRO", "Digite a placa completa (7 caracteres).", "erro"); return; } const veiculosDb = JSON.parse(localStorage.getItem("sigo_db_veiculos")) || {}; const civilDb = JSON.parse(localStorage.getItem("sigo_db_civis")) || {}; if (!veiculosDb[placa]) { sigoNotify("ALERTA SINESP", "Veículo não encontrado.", "erro"); document.getElementById("resultado-placa-policia").classList.add("hidden"); return; } const veiculo = veiculosDb[placa]; const dono = civilDb[veiculo.proprietario] ? civilDb[veiculo.proprietario].nome : "DESCONHECIDO"; placaEmConsulta = veiculo.placa; document.getElementById("res-placa").innerText = veiculo.placa; document.getElementById("res-proprietario").innerText = dono + ` (ID: ${veiculo.proprietario})`; document.getElementById("res-modelo").innerText = `${veiculo.modelo} | COR: ${veiculo.cor}`; const badgeStatus = document.getElementById("res-status-badge"); const btnLiberar = document.getElementById("btn-liberar-patio"); if (veiculo.status === "APREENDIDO") { badgeStatus.innerHTML = `<span class="status-badge bad" style="font-size:10px;">VEÍCULO COM RESTRIÇÃO / APREENDIDO</span>`; btnLiberar.classList.remove("hidden"); } else { badgeStatus.innerHTML = `<span class="status-badge ok" style="font-size:10px;">SITUAÇÃO REGULAR</span>`; btnLiberar.classList.add("hidden"); } document.getElementById("resultado-placa-policia").classList.remove("hidden"); sigoNotify("SINESP", "Consulta realizada com sucesso.", "sucesso"); verificarMandadoPrisaoPainel(veiculo.proprietario); }
-window.aplicarAutuacaoVeiculo = function () { if (!placaEmConsulta) return; const motivo = document.getElementById("autuacao-motivo").value.trim(); const valor = document.getElementById("autuacao-valor").value; const impound = document.getElementById("autuacao-apreensao").value; const u = JSON.parse(sessionStorage.getItem("sigo_oficial_logado")); if (!motivo || !valor) { sigoNotify("ERRO", "Preencha motivo e valor da infração.", "erro"); return; } const veiculosDb = JSON.parse(localStorage.getItem("sigo_db_veiculos")) || {}; const veiculo = veiculosDb[placaEmConsulta]; const multasDb = JSON.parse(localStorage.getItem("sigo_db_multas")) || []; const idMulta = "M-" + Math.floor(10000 + Math.random() * 90000); multasDb.push({ id: idMulta, passaporte: veiculo.proprietario, placa: placaEmConsulta, motivo: motivo.toUpperCase(), valor: valor, oficial: `${u.patente} ${u.nome}`, data: new Date().toLocaleString('pt-BR'), status: "PENDENTE" }); localStorage.setItem("sigo_db_multas", JSON.stringify(multasDb)); let msgApreensao = "Não"; if (impound === "SIM") { veiculosDb[placaEmConsulta].status = "APREENDIDO"; localStorage.setItem("sigo_db_veiculos", JSON.stringify(veiculosDb)); msgApreensao = "SIM - Recolhido ao Pátio"; } registrarLogInterno("POLICIA", u.nome, u.passaporte, `Aplicou multa R$${valor} na placa ${placaEmConsulta} (Apreendido: ${msgApreensao})`, "DETRAN"); enviarWebhook(WEBHOOKS.DETRAN, "📋 AUTO DE INFRAÇÃO APLICADO", `**Oficial:** ${u.nome}\n**Placa Autuada:** ${placaEmConsulta}\n**Proprietário ID:** ${veiculo.proprietario}\n\n**Infração:** ${motivo}\n**Valor:** R$ ${valor},00\n**Apreendido:** ${msgApreensao}`, "#ca8a04"); sigoNotify("AUTUAÇÃO CONCLUÍDA", "Multa lançada no prontuário.", "sucesso"); document.getElementById("autuacao-motivo").value = ""; document.getElementById("autuacao-valor").value = ""; document.getElementById("autuacao-apreensao").value = "NAO"; consultarPlacaPolicial(); }
-window.liberarVeiculoPatio = function () { if (!placaEmConsulta) return; const veiculosDb = JSON.parse(localStorage.getItem("sigo_db_veiculos")) || {}; veiculosDb[placaEmConsulta].status = "REGULAR"; localStorage.setItem("sigo_db_veiculos", JSON.stringify(veiculosDb)); const u = JSON.parse(sessionStorage.getItem("sigo_oficial_logado")); registrarLogInterno("POLICIA", u.nome, u.passaporte, `Liberou veículo ${placaEmConsulta} do pátio`, "DETRAN"); enviarWebhook(WEBHOOKS.DETRAN, "🟢 VEÍCULO LIBERADO DO PÁTIO", `**Oficial Responsável:** ${u.nome}\n**Placa Liberada:** ${placaEmConsulta}`, "#15803d"); sigoNotify("PÁTIO", "Restrição removida.", "sucesso"); consultarPlacaPolicial(); }
-window.renderizarMultasParaBaixa = function () { const container = document.getElementById("lista-multas-analise"); if (!container) return; const multas = JSON.parse(localStorage.getItem("sigo_db_multas")) || []; const aguardando = multas.filter(m => m.status === 'AGUARDANDO_BAIXA'); if (aguardando.length === 0) { container.innerHTML = `<p class="font-mono" style="color:#64748b; font-size:11px;">Nenhuma solicitação de baixa pendente.</p>`; return; } let html = ""; aguardando.forEach(m => { html += `<div class="card-multa step-animado" style="border-color:var(--warning-yellow); display:flex; justify-content:space-between; align-items:center;"><div class="multa-info"><h5 style="color:var(--warning-yellow); font-size:14px; margin-bottom:5px;">${m.motivo}</h5><p style="color:#e2e8f0; font-size:11px;">Proprietário ID: <strong>${m.passaporte}</strong> | Veículo: <strong>${m.placa}</strong></p><p style="color:#cbd5e1; font-size:10px;">Valor Solicitado: <strong style="color:#f8fafc;">R$ ${m.valor},00</strong> | Protocolo: ${m.id}</p></div><div style="display:flex; flex-direction:column; gap:5px; min-width:180px;"><button class="btn-neutro font-mono" style="background:var(--success-green); color:#000; border:none; padding:10px; font-size:9px;" onclick="aprovarBaixaMulta('${m.id}')">[ APROVAR BAIXA ]</button><button class="btn-perigo font-mono" style="padding:10px; font-size:9px;" onclick="rejeitarBaixaMulta('${m.id}')">[ RECUSAR PAGAMENTO ]</button></div></div>`; }); container.innerHTML = html; }
-window.aprovarBaixaMulta = function (idMulta) { let multas = JSON.parse(localStorage.getItem("sigo_db_multas")) || []; const index = multas.findIndex(m => m.id === idMulta); if (index > -1) { const m = multas[index]; const u = JSON.parse(sessionStorage.getItem("sigo_oficial_logado")); registrarLogInterno("POLICIA", u.nome, u.passaporte, `Baixa confirmada na multa ${idMulta}`, "FINANCEIRO"); enviarWebhook(WEBHOOKS.FINANCEIRO, "✅ PAGAMENTO CONFIRMADO", `**Oficial Responsável:** ${u.nome}\n**Multa:** ${m.id}\n**Placa:** ${m.placa}\n**Civil Beneficiado ID:** ${m.passaporte}\n**Valor:** R$ ${m.valor},00`, "#059669"); multas.splice(index, 1); localStorage.setItem("sigo_db_multas", JSON.stringify(multas)); sigoNotify("SUCESSO", "Multa baixada e removida.", "sucesso"); renderizarMultasParaBaixa(); } }
-window.rejeitarBaixaMulta = function (idMulta) { let multas = JSON.parse(localStorage.getItem("sigo_db_multas")) || []; const m = multas.find(m => m.id === idMulta); if (m) { m.status = "PENDENTE"; const u = JSON.parse(sessionStorage.getItem("sigo_oficial_logado")); registrarLogInterno("POLICIA", u.nome, u.passaporte, `Rejeitou pagamento da multa ${idMulta}`, "FINANCEIRO"); localStorage.setItem("sigo_db_multas", JSON.stringify(multas)); sigoNotify("REJEITADO", "A multa voltou para PENDENTE.", "aviso"); renderizarMultasParaBaixa(); } }
-
-window.renderizarBOCivisParaAnalise = function () { const container = document.getElementById("lista-bos-civis-analise"); if (!container) return; const bos = JSON.parse(localStorage.getItem("sigo_bos_civis")) || []; const pendentes = bos.filter(b => b.status === "EM ANÁLISE"); if (pendentes.length === 0) { container.innerHTML = `<p class="font-mono" style="color:#64748b;">Nenhuma ocorrência civil pendente de análise.</p>`; return; } let html = ""; pendentes.forEach(b => { html += `<div style="background:#080b12; border-left:3px solid #38bdf8; padding:15px; margin-bottom:10px; border-radius:3px; border-top:1px solid #1e293b; border-right:1px solid #1e293b; border-bottom:1px solid #1e293b;" class="step-animado"><div style="display:flex; justify-content:space-between; margin-bottom:5px;"><span style="color:#38bdf8; font-size:12px; font-weight:800;">[ BO ONLINE ] ${b.tipo}</span><span style="font-size:10px; color:#f8fafc; font-weight:800; background:#0f172a; padding:4px 8px; border-radius:2px;">ID VÍTIMA: ${b.civilPass}</span></div><p style="font-size:10px; color:#cbd5e1; margin-bottom:10px;"><strong>Vítima:</strong> ${b.nomeCivil} | <strong>Protocolo:</strong> ${b.id} | <strong>Data Fato:</strong> ${b.dataOcorrencia}</p><div style="background:#fff; border:1px solid #cbd5e1; padding:10px; border-radius:3px; font-size:11px; color:#334155; margin-bottom:15px; white-space: pre-wrap;">"${b.relato}"</div><div style="display:flex; gap:10px;"><button class="btn-neutro font-mono" style="background:var(--success-green); color:#000; border:none;" onclick="aprovarBOCivil('${b.id}')">[ VALIDAR B.O ]</button><button class="btn-perigo font-mono" onclick="rejeitarBOCivil('${b.id}')">[ REJEITAR E ARQUIVAR ]</button></div></div>`; }); container.innerHTML = html; }
-window.aprovarBOCivil = function (idBo) { let bos = JSON.parse(localStorage.getItem("sigo_bos_civis")) || []; const b = bos.find(x => x.id === idBo); if (b) { const u = JSON.parse(sessionStorage.getItem("sigo_oficial_logado")); b.status = "VALIDADO"; b.despacho = `Homologado por ${u.patente} ${u.nome}`; localStorage.setItem("sigo_bos_civis", JSON.stringify(bos)); registrarLogInterno("POLICIA", u.nome, u.passaporte, `Validou o BO Civil ${idBo}`, "DELEGACIA"); sigoNotify("BO VALIDADO", "Documento foi assinado e ganhou valor legal.", "sucesso"); renderizarBOCivisParaAnalise(); } }
-window.rejeitarBOCivil = function (idBo) { const motivo = prompt("Motivo da rejeição (Ex: Fatos desconexos, falta de provas):"); if (!motivo) return; let bos = JSON.parse(localStorage.getItem("sigo_bos_civis")) || []; const b = bos.find(x => x.id === idBo); if (b) { const u = JSON.parse(sessionStorage.getItem("sigo_oficial_logado")); b.status = "REJEITADO"; b.despacho = `Indeferido por ${u.patente} ${u.nome}. Motivo: ${motivo}`; localStorage.setItem("sigo_bos_civis", JSON.stringify(bos)); registrarLogInterno("POLICIA", u.nome, u.passaporte, `Rejeitou BO Civil ${idBo}`, "DELEGACIA"); sigoNotify("BO REJEITADO", "O documento foi arquivado e sem valor legal.", "aviso"); renderizarBOCivisParaAnalise(); } }
-
-window.emitirLicencaCivil = function () { const u = JSON.parse(sessionStorage.getItem("sigo_oficial_logado")); if (u.tipo !== 'PF' && u.tipo !== 'ADMIN') { sigoNotify("ACESSO NEGADO", "Apenas a Polícia Federal pode emitir este documento.", "erro"); return; } const pass = document.getElementById("licenca-passaporte").value; const tipo = document.getElementById("licenca-tipo").value; const arma = document.getElementById("licenca-arma") ? document.getElementById("licenca-arma").value.trim() : ""; const municao = document.getElementById("licenca-municao") ? document.getElementById("licenca-municao").value : ""; const validade = document.getElementById("licenca-validade").value; const obs = document.getElementById("licenca-obs").value.trim(); if (!pass || !validade || !obs) { sigoNotify("DADOS INCOMPLETOS", "Preencha Passaporte, Validade e Laudo.", "erro"); return; } if (tipo.includes("PORTE") && (!arma || !municao)) { sigoNotify("SEGURANÇA FEDERAL", "Porte de arma exige Modelo e Munição.", "erro"); return; } const dbCivil = JSON.parse(localStorage.getItem("sigo_db_civis")) || {}; if (!dbCivil[pass]) { sigoNotify("ERRO", "Cidadão não encontrado.", "erro"); return; } const licencas = JSON.parse(localStorage.getItem("sigo_db_licencas")) || []; if (licencas.some(l => l.passaporte === pass && l.tipo === tipo)) { sigoNotify("ERRO", "Cidadão já possui esta licença ativa.", "erro"); return; } const valParts = validade.split("-"); const validadeFormatada = valParts.length === 3 ? `${valParts[2]}/${valParts[1]}/${valParts[0]}` : validade; const lic = { id: "CRAF-" + Math.floor(10000 + Math.random() * 90000), passaporte: pass, tipo: tipo, arma: arma, municao: municao, validade: validadeFormatada, obs: obs, emissor: `${u.patente} ${u.nome}`, data: new Date().toLocaleString('pt-BR') }; licencas.push(lic); localStorage.setItem("sigo_db_licencas", JSON.stringify(licencas)); registrarLogInterno("POLICIA", u.nome, u.passaporte, `Emitiu ${tipo} para o Civil ID ${pass}`, "LICENCAS"); let webhookMsg = `**Agente Concessor:** ${u.nome}\n**Civil Beneficiado:** ${dbCivil[pass].nome} (ID: ${pass})\n**Documento:** ${tipo}\n**Validade:** ${validadeFormatada}\n`; if (tipo.includes("PORTE")) webhookMsg += `**Armamento Autorizado:** ${arma} (Máx: ${municao} munições)\n`; webhookMsg += `**Laudo:**\n"${obs}"`; enviarWebhook(WEBHOOKS.GERAL, "📜 DOCUMENTO FEDERAL EMITIDO", webhookMsg, "#0ea5e9"); sigoNotify("SUCESSO", "Documento gerado.", "sucesso"); document.getElementById("licenca-passaporte").value = ""; if (document.getElementById("licenca-arma")) document.getElementById("licenca-arma").value = ""; if (document.getElementById("licenca-municao")) document.getElementById("licenca-municao").value = ""; document.getElementById("licenca-validade").value = ""; document.getElementById("licenca-obs").value = ""; renderizarLicencasPainel(); }
-window.renderizarLicencasPainel = function () { const container = document.getElementById("lista-licencas-ativas"); if (!container) return; const licencas = JSON.parse(localStorage.getItem("sigo_db_licencas")) || []; const termo = document.getElementById("busca-licencas")?.value || ""; const filtrados = licencas.filter(l => l.passaporte.includes(termo)); if (filtrados.length === 0) { container.innerHTML = `<p class="font-mono" style="font-size:10px; color:#64748b; padding:10px;">Nenhuma licença encontrada na busca.</p>`; return; } const u = JSON.parse(sessionStorage.getItem("sigo_oficial_logado")); const podeEditar = u && (u.tipo === 'PF' || u.tipo === 'ADMIN'); let html = ""; filtrados.reverse().forEach(l => { let armaInfo = l.arma ? `<p style="font-size:10px; color:#fef08a; margin-top:5px; font-weight:800;">ARMAMENTO: ${l.arma} (${l.municao} munições)</p>` : ""; let btnRevogar = podeEditar ? `<button class="btn-perigo font-mono" style="padding:8px; font-size:9px; width:100%; margin-top:12px; letter-spacing:1px;" onclick="revogarLicenca('${l.id}')">[ REVOGAR DOCUMENTO ]</button>` : ''; html += `<div style="background:#080b12; border-left: 3px solid #38bdf8; padding:15px; margin-bottom:10px; border-radius:3px; border:1px solid #1e293b;" class="step-animado"><div style="display:flex; justify-content:space-between; align-items:center;"><span style="color:#38bdf8; font-size:12px; font-weight:800; letter-spacing:1px;">${l.tipo}</span><span style="font-size:10px; color:#f8fafc; font-weight:800; background:#0f172a; padding:4px 8px; border-radius:2px;">ID CIVIL: ${l.passaporte}</span></div>${armaInfo}<p style="font-size:10px; color:#cbd5e1; margin-top:10px; font-family:'JetBrains Mono', monospace;"><strong>Validade:</strong> ${l.validade}</p><p style="font-size:9px; color:#64748b; font-family:'JetBrains Mono', monospace; margin-top:2px;"><strong>Emissor:</strong> ${l.emissor} | Data: ${l.data}</p>${btnRevogar}</div>`; }); container.innerHTML = html; }
-window.revogarLicenca = function (idLic) { const u = JSON.parse(sessionStorage.getItem("sigo_oficial_logado")); if (u.tipo !== 'PF' && u.tipo !== 'ADMIN') { sigoNotify("ACESSO NEGADO", "Apenas a PF pode revogar.", "erro"); return; } if (!confirm("Confirmar revogação de licença?")) return; let licencas = JSON.parse(localStorage.getItem("sigo_db_licencas")) || []; const lic = licencas.find(l => l.id === idLic); if (lic) { licencas = licencas.filter(l => l.id !== idLic); localStorage.setItem("sigo_db_licencas", JSON.stringify(licencas)); registrarLogInterno("POLICIA", u.nome, u.passaporte, `Revogou ${lic.tipo} do ID ${lic.passaporte}`, "LICENCAS"); enviarWebhook(WEBHOOKS.GERAL, "🚫 LICENÇA REVOGADA", `**Oficial:** ${u.nome}\n**Civil:** ID ${lic.passaporte}\n**Licença:** ${lic.tipo}`, "#e11d48"); sigoNotify("REVOGADO", "Licença cassada.", "sucesso"); renderizarLicencasPainel(); } }
-
-// =========================================================================
-// 10. ATALHOS DE TECLADO GLOBAIS (ENTER E ESC)
-// =========================================================================
-document.addEventListener('keydown', function (event) {
-    if (event.key === 'Escape') {
-        const modais = ['modal-boletim', 'modal-cad-usuario', 'modal-perfil-usuario', 'modal-documento-licenca', 'modal-teste-webhook'];
-        let modalAberto = false;
-        modais.forEach(id => { const el = document.getElementById(id); if (el && !el.classList.contains('hidden')) { el.classList.add('hidden'); modalAberto = true; } });
-        if (!modalAberto && document.getElementById("step-identificacao") && document.getElementById("step-identificacao").classList.contains("hidden") && !sessionStorage.getItem("sigo_oficial_logado")) { voltarInicio(); }
+    if (!db[c.passaporte].codigoUnico) {
+        db[c.passaporte].codigoUnico = gerarCodigoCidadao();
+        localStorage.setItem("sigo_db_civis", JSON.stringify(db));
+        c.codigoUnico = db[c.passaporte].codigoUnico;
     }
+    window.txt("cod-civil-cadastrado", "CÓD: " + c.codigoUnico.toUpperCase());
+    window.shw("step-login-civil");
+    db[c.passaporte].ultimoAcesso = new Date().toLocaleString("pt-BR");
+    localStorage.setItem("sigo_db_civis", JSON.stringify(db));
+    window.mudarAbaCivil("aba-civil-perfil");
+    window.renderizarPainelCivilDash(c.passaporte);
+    window.gerarNadaConsta(c.passaporte);
+    window.carregarOficiaisParaDenuncia();
+    window.renderizarDetranCivil(c.passaporte);
+    window.renderizarMeusBOCivis();
+    window.registrarLogInterno("CIVIL", c.nome, c.passaporte, "Logou Gov.br", "LOGIN");
+};
 
-    if (event.key === 'Enter') {
-        if (event.target.tagName === 'TEXTAREA') return;
-        if (!document.getElementById('step-identificacao')?.classList.contains('hidden') && document.activeElement.id === 'input-cpf') iniciarBusca();
-        else if (!document.getElementById('step-pin-militar')?.classList.contains('hidden')) validarPin();
-        else if (!document.getElementById('step-pin-civil')?.classList.contains('hidden')) validarPinCivil();
-        else if (document.activeElement.id === 'busca-placa-detran') consultarPlacaPolicial();
-        else if (document.activeElement.id === 'busca-efetivo') renderizarEfetivo();
-        else if (document.activeElement.id === 'busca-boletim') filtrarBoletins();
-        else if (document.activeElement.id === 'mandado-passaporte' || document.activeElement.id === 'mandado-motivo') expedirMandadoPrisao();
+window.mudarAbaCivil = function (id) {
+    [
+        "aba-civil-perfil",
+        "aba-civil-nada-consta",
+        "aba-civil-detran",
+        "aba-civil-delegacia",
+        "aba-civil-ouvidoria",
+    ].forEach(window.hid);
+    [
+        "btn-civil-perfil",
+        "btn-civil-nada-consta",
+        "btn-civil-detran",
+        "btn-civil-delegacia",
+        "btn-civil-ouvidoria",
+    ].forEach((i) => {
+        if (window.$(i)) window.$(i).classList.remove("ativo");
+    });
+    window.shw(id);
+    const b = id.replace("aba-", "btn-");
+    if (window.$(b)) window.$(b).classList.add("ativo");
+};
+window.enviarBOCivil = async function () {
+    const t = window.val("bo-civil-tipo"),
+        d = window.val("bo-civil-data"),
+        r = window.val("bo-civil-relato");
+    if (!d || !r) return window.sigoNotify("ERRO", "Preencha tudo.", "erro");
+    const c = JSON.parse(localStorage.getItem("sigo_db_civis"))[civilPassAtual];
+    const p = await window.sigoPrompt("Senha Gov.br para assinar:", true);
+    if (p !== c.senha) return window.sigoNotify("RECUSADO", "Senha incorreta.", "erro");
+    const bos = JSON.parse(localStorage.getItem("sigo_bos_civis")) || [];
+    const pt = "BOC-" + Math.floor(100000 + Math.random() * 900000);
+    bos.push({
+        id: pt,
+        civilPass: civilPassAtual,
+        nomeCivil: c.nome,
+        tipo: t,
+        dataOcorrencia: d.replace("T", " às "),
+        relato: r,
+        status: "EM ANÁLISE",
+        dataRegistro: new Date().toLocaleString("pt-BR"),
+    });
+    localStorage.setItem("sigo_bos_civis", JSON.stringify(bos));
+    window.registrarLogInterno("CIVIL", c.nome, civilPassAtual, `BO Eletrônico ${pt}`, "DELEGACIA");
+    window.enviarWebhook(WEBHOOKS.GERAL, `💻 B.O (CIVIL) [${pt}]`, `**Cidadão:** ${c.nome}\n**Fato:** ${r}`, "#0ea5e9");
+    window.sigoNotify("SUCESSO", "Enviado à Civil.", "sucesso");
+    window.setVal("bo-civil-data", "");
+    window.setVal("bo-civil-relato", "");
+    window.renderizarMeusBOCivis();
+};
+window.renderizarMeusBOCivis = function () {
+    if (!window.$("lista-bos-civis-status")) return;
+    const bos = JSON.parse(localStorage.getItem("sigo_bos_civis")) || [],
+        mb = bos.filter((b) => b.civilPass === civilPassAtual);
+    if (mb.length === 0)
+        return window.html(
+            "lista-bos-civis-status",
+            `<p class="font-mono" style="font-size:10px;color:#64748b;">Sem ocorrências.</p>`
+        );
+    let h = "";
+    mb.reverse().forEach((b) => {
+        let cs =
+            b.status === "VALIDADO"
+                ? "var(--success-green)"
+                : b.status === "REJEITADO"
+                  ? "var(--bombeiro-red)"
+                  : "var(--warning-yellow)";
+        h += `<div style="background:#080b12;border-left:3px solid ${cs};padding:15px;margin-bottom:10px;border-radius:3px;"><div style="display:flex;justify-content:space-between;margin-bottom:10px;"><span style="color:#f8fafc;font-size:12px;font-weight:800;">${b.tipo}</span><span style="font-size:10px;color:${cs};font-weight:800;">[ ${b.status} ]</span></div><p style="font-size:10px;color:#cbd5e1;">Prot: ${b.id} | Data: ${b.dataOcorrencia}</p></div>`;
+    });
+    window.html("lista-bos-civis-status", h);
+};
+window.renderizarPainelCivilDash = function (p) {
+    if (!window.$("civil-historico-container")) return;
+    let h = "";
+    const l = JSON.parse(localStorage.getItem("sigo_db_licencas")) || [],
+        ml = l.filter((x) => x.passaporte === p);
+    if (ml.length > 0) {
+        h += `<h4 style="color:var(--gov-light);font-size:10px;border-bottom:1px solid #1e293b;padding-bottom:5px;margin-top:20px;margin-bottom:15px;">DOCUMENTOS</h4><div style="display:flex;gap:15px;flex-wrap:wrap;margin-bottom:30px;">`;
+        ml.forEach((x) => {
+            h += `<div style="background:#082f49;border:1px solid var(--gov-light);padding:20px;border-radius:4px;flex:1;min-width:250px;"><h5 style="color:var(--gov-light);font-size:14px;">${x.tipo}</h5><p style="font-size:10px;color:#bae6fd;">Prot: ${x.id}</p><button class="btn-entrar font-mono mt-15" style="background:var(--gov-blue);color:#fff;border:none;padding:10px;" onclick="abrirCRAFCivil('${x.id}')">[ VISUALIZAR ]</button></div>`;
+        });
+        h += `</div>`;
+    }
+    window.html("civil-historico-container", h);
+};
+window.abrirCRAFCivil = async function (id) {
+    const pin = await window.sigoPrompt("Senha numérica:", true);
+    if (!pin) return;
+    const c = JSON.parse(localStorage.getItem("sigo_db_civis"))[civilPassAtual];
+    if (pin !== c.senha) return window.sigoNotify("NEGADO", "Senha incorreta.", "erro");
+    const l = (JSON.parse(localStorage.getItem("sigo_db_licencas")) || []).find((x) => x.id === id);
+    if (l) {
+        const cf = JSON.parse(localStorage.getItem("sigo_global_ui")) || DEFAULT_CONFIG;
+        let a = l.arma
+            ? `<div style="background:#e2e8f0;padding:10px;border-left:4px solid #0369a1;margin:20px 0;"><p style="font-size:11px;color:#334155;"><strong>ARMA:</strong> ${l.arma.toUpperCase()}</p></div>`
+            : "";
+        window.html(
+            "conteudo-documento-licenca",
+            `<div style="text-align:center;border-bottom:2px solid #0f172a;padding-bottom:20px;margin-bottom:20px;"><img src="${cf.brasao}" style="width:60px;filter:grayscale(100%);margin-bottom:10px;"><h2 style="font-size:18px;font-weight:900;color:#0f172a;">R.F.B.</h2><h3 style="font-size:14px;font-weight:800;color:#0369a1;">${l.tipo.toUpperCase()}</h3><p style="font-size:10px;color:#475569;">CERTIFICADO N° ${l.id}</p></div><div style="display:flex;justify-content:space-between;margin-bottom:15px;"><div><p style="font-size:10px;color:#64748b;">TITULAR</p><p style="font-size:14px;font-weight:800;">${c.nome.toUpperCase()}</p></div><div style="text-align:right;"><p style="font-size:10px;color:#64748b;">ID</p><p style="font-size:14px;font-weight:800;">${c.passaporte}</p></div></div>${a}<div style="margin-bottom:20px;"><p style="font-size:10px;color:#64748b;">LAUDO:</p><div style="background:#fff;border:1px solid #cbd5e1;padding:15px;font-size:11px;color:#0f172a;">"${l.obs}"</div></div><div style="text-align:center;color:#15803d;font-weight:800;border:2px dashed #15803d;padding:10px;margin-top:30px;">VALIDADO</div>`
+        );
+        window.shw("modal-documento-licenca");
+    }
+};
+window.gerarNadaConsta = function (p) {
+    if (!window.$("container-documento-nada-consta")) return;
+    const ia = (JSON.parse(localStorage.getItem("sigo_investigacoes")) || []).filter(
+        (x) => x.alvoPass === p && x.status === "ABERTO"
+    );
+    const cf = JSON.parse(localStorage.getItem("sigo_global_ui")) || DEFAULT_CONFIG;
+    if (ia.length === 0) {
+        window.html(
+            "container-documento-nada-consta",
+            `<div class="doc-nada-consta"><div class="doc-header-civil"><img src="${cf.brasao}" style="width:50px;margin-bottom:10px;"><h3>${cf.nome}</h3><p>NADA CONSTA</p></div><div class="doc-body-civil"><p>NÃO CONSTA anotações criminais para o ID <strong>${p}</strong>.</p><div class="carimbo-verde">AUTENTICADO</div></div></div>`
+        );
+    } else {
+        window.html(
+            "container-documento-nada-consta",
+            `<div class="doc-nada-consta" style="border-color:var(--bombeiro-red);background:rgba(220,38,38,0.02);"><div class="doc-header-civil" style="border-bottom-color:var(--bombeiro-red);"><img src="${cf.brasao}" style="width:50px;filter:grayscale(100%);margin-bottom:10px;"><h3 style="color:var(--bombeiro-red);">${cf.nome}</h3><p style="color:var(--bombeiro-red);">POSSUI ANTECEDENTES</p></div><div class="doc-body-civil"><p>CONSTA inquérito ativo para o ID <strong>${p}</strong>.</p><div class="carimbo-verde" style="color:var(--bombeiro-red);border-color:var(--bombeiro-red);">REGISTRO POSITIVO</div></div></div>`
+        );
+    }
+};
+window.transferirVeiculoCivil = async function (pl) {
+    const ci = await window.sigoPrompt(`ID do comprador para a placa ${pl}:`);
+    if (!ci || ci === civilPassAtual) return;
+    const dc = JSON.parse(localStorage.getItem("sigo_db_civis")) || {};
+    if (!dc[ci]) return window.sigoNotify("ERRO", "Comprador não encontrado.", "erro");
+    const c = dc[civilPassAtual],
+        pin = await window.sigoPrompt(`Senha para transferir para ${dc[ci].nome}:`, true);
+    if (pin !== c.senha) return window.sigoNotify("RECUSADO", "Senha incorreta.", "erro");
+    const dv = JSON.parse(localStorage.getItem("sigo_db_veiculos")) || {};
+    dv[pl].proprietario = ci;
+    localStorage.setItem("sigo_db_veiculos", JSON.stringify(dv));
+    window.registrarLogInterno("CIVIL", c.nome, civilPassAtual, `Transferiu ${pl} para ${ci}`, "DETRAN");
+    window.enviarWebhook(
+        WEBHOOKS.DETRAN,
+        "🔄 TRANSFERÊNCIA",
+        `**Vendedor:** ${c.nome}\n**Comprador ID:** ${ci}\n**Placa:** ${pl}`,
+        "#0ea5e9"
+    );
+    window.sigoNotify("SUCESSO", "Transferido.", "sucesso");
+    window.renderizarDetranCivil(civilPassAtual);
+};
+window.renderizarDetranCivil = function (p) {
+    if (!window.$("container-cnh-digital")) return;
+    const c = JSON.parse(localStorage.getItem("sigo_db_civis"))[p],
+        m = JSON.parse(localStorage.getItem("sigo_db_multas")) || [],
+        v = Object.values(JSON.parse(localStorage.getItem("sigo_db_veiculos")) || {}).filter(
+            (x) => x.proprietario === p
+        ),
+        pt = m.filter((x) => x.passaporte === p).length * 5,
+        sp = pt >= 20;
+    window.html(
+        "container-cnh-digital",
+        `<div class="cnh-documento ${sp ? "cnh-suspensa" : ""}"><div class="cnh-pontos">${pt} PTS</div><div class="cnh-dados"><h4>C.N.H.</h4><p style="font-size:10px;color:#86efac;margin-bottom:0;">CONDUTOR</p><p>${c.nome}</p><p style="color:${sp ? "#fca5a5" : "#fff"};">${sp ? "SUSPENSA" : "REGULAR"}</p></div></div>`
+    );
+    if (window.$("lista-meus-veiculos")) {
+        let hv = "";
+        if (v.length === 0) hv = `<p class="font-mono" style="font-size:10px;color:#64748b;">Sem veículos.</p>`;
+        else
+            v.forEach((x) => {
+                const st = x.status === "APREENDIDO" ? "bad" : "ok";
+                hv += `<div class="card-veiculo ${x.status === "APREENDIDO" ? "status-apreendido" : ""}"><div class="veiculo-info"><h4>${x.modelo} - ${x.cor}</h4><p>PLACA: ${x.placa}</p><span class="status-badge ${st}">${x.status}</span><br><button class="btn-neutro font-mono mt-15" style="padding:5px;font-size:8px;border-color:#0ea5e9;color:#0ea5e9;" onclick="transferirVeiculoCivil('${x.placa}')">[ TRANSFERIR ]</button></div></div>`;
+            });
+        window.html("lista-meus-veiculos", hv);
+    }
+    if (window.$("lista-minhas-multas")) {
+        let hm = "";
+        const mm = m.filter((x) => x.passaporte === p);
+        if (mm.length === 0) hm = `<p class="font-mono" style="font-size:10px;color:#64748b;">Sem infrações.</p>`;
+        else
+            mm.forEach((x) => {
+                let a =
+                    x.status === "AGUARDANDO_BAIXA"
+                        ? `<span style="color:var(--warning-yellow);font-size:9px;">AGUARDANDO...</span>`
+                        : `<button class="btn-neutro font-mono" style="padding:5px;font-size:8px;color:var(--success-green);border-color:var(--success-green);" onclick="solicitarPagamentoMulta('${x.id}')">[ SOLICITAR BAIXA ]</button>`;
+                hm += `<div class="card-multa" style="${x.status === "AGUARDANDO_BAIXA" ? "border-color:#64748b;opacity:0.7;" : ""}"><div class="multa-info"><h5 style="${x.status === "AGUARDANDO_BAIXA" ? "color:#94a3b8" : ""}">${x.motivo}</h5><p>${x.placa} | ${x.id}</p></div><div style="text-align:right;"><p class="multa-valor">R$ ${x.valor},00</p>${a}</div></div>`;
+            });
+        window.html("lista-minhas-multas", hm);
+    }
+};
+window.solicitarPagamentoMulta = async function (id) {
+    const cf = await window.sigoConfirm("A baixa precisa de validação. Confirmar?");
+    if (!cf) return;
+    let dm = JSON.parse(localStorage.getItem("sigo_db_multas")) || [],
+        m = dm.find((x) => x.id === id);
+    if (m) {
+        m.status = "AGUARDANDO_BAIXA";
+        localStorage.setItem("sigo_db_multas", JSON.stringify(dm));
+        window.sigoNotify("ENVIADA", "Aguarde o Detran.", "sucesso");
+        window.renderizarDetranCivil(civilPassAtual);
+    }
+};
+window.carregarOficiaisParaDenuncia = function () {
+    if (!window.$("denuncia-oficial-alvo")) return;
+    let ho = '<option value="">Selecione oficial...</option>';
+    Object.values(JSON.parse(localStorage.getItem("sigo_db_usuarios")) || {}).forEach((u) => {
+        if (u.tipo !== "ADMIN" && u.tipo !== "DEV")
+            ho += `<option value="${u.passaporte}">${u.patente} ${u.nome}</option>`;
+    });
+    window.html("denuncia-oficial-alvo", ho);
+};
+window.enviarDenunciaCorregedoria = function () {
+    const a = window.val("denuncia-oficial-alvo"),
+        r = window.val("denuncia-relato");
+    if (!a || !r) return window.sigoNotify("ERRO", "Preencha tudo.", "erro");
+    const du = JSON.parse(localStorage.getItem("sigo_db_usuarios")) || {},
+        sl = JSON.parse(localStorage.getItem("sigo_solicitacoes")) || [];
+    sl.push({
+        id: "DEN-" + Math.floor(1000 + Math.random() * 9000),
+        protocolo: "ID: " + civilPassAtual,
+        tipo: "DENÚNCIA",
+        oficial: `${du[a].patente} ${du[a].nome}`,
+        oficialPass: du[a].passaporte,
+        motivo: `[OUVIDORIA] ${r}`,
+        data: new Date().toLocaleString("pt-BR"),
+        status: "PENDENTE",
+    });
+    localStorage.setItem("sigo_solicitacoes", JSON.stringify(sl));
+    window.enviarWebhook(WEBHOOKS.CORREGEDORIA, "🚨 DENÚNCIA", `**Alvo:** ${du[a].nome}\n**Relato:** ${r}`, "#e11d48");
+    window.sigoNotify("SUCESSO", "Enviada.", "sucesso");
+    window.setVal("denuncia-relato", "");
+    window.setVal("denuncia-oficial-alvo", "");
+    window.mudarAbaCivil("aba-civil-perfil");
+};
+/* S.I.G.O. V-BETA OFICIAL - PAINEL, ADMIN E WATCHDOG */
+window.carregarDadosPainel = function () {
+    const u = JSON.parse(sessionStorage.getItem("sigo_oficial_logado"));
+    if (!u || u.tipo === "CIVIL") return (window.location.href = "index.html");
+    if (window.$("topbar-nome")) window.txt("topbar-nome", u.patente + " " + u.nome);
+    window.setVal("aph-socorrista-nome", u.patente + " " + u.nome);
+    window.setVal("aph-socorrista-pass", u.passaporte);
+    const b = window.$("topbar-badge");
+    if (b) {
+        if (u.tipo === "DEV") {
+            b.innerText = "INSPETOR DEV";
+            b.className = "badge";
+            b.style.backgroundColor = "#c084fc";
+            b.style.color = "#000";
+            window.txt("titulo-sigo-pequeno", "S.I.G.O. INTELIGENTE");
+        } else if (u.tipo === "PM" || u.tipo === "PC") {
+            b.innerText = u.tipo === "PM" ? "PMESP" : "PCSP";
+            b.className = "badge badge-pm";
+            window.txt("titulo-sigo-pequeno", "S.I.G.O. TÁTICO");
+        } else if (u.tipo === "PF") {
+            b.innerText = "POLÍCIA FEDERAL";
+            b.className = "badge badge-pf";
+            window.txt("titulo-sigo-pequeno", "FEDERAL");
+        } else if (u.tipo === "PRF") {
+            b.innerText = "POLÍCIA RODOVIÁRIA";
+            b.className = "badge badge-prf";
+        } else {
+            b.innerText = "BOMBEIRO MILITAR";
+            b.className = "badge badge-bombeiro";
+        }
+    }
+    window.atualizarAcaoLogado("EM PAINEL");
+    window.carregarMeusBoletinsPainel();
+};
+window.acionarQRR = async function () {
+    const c = await window.sigoConfirm("Disparar QRR LETAIS?");
+    if (!c) return;
+    let ctx = new (window.AudioContext || window.webkitAudioContext)();
+    let o = ctx.createOscillator();
+    o.type = "sawtooth";
+    o.frequency.setValueAtTime(400, ctx.currentTime);
+    o.frequency.linearRampToValueAtTime(1000, ctx.currentTime + 0.5);
+    o.connect(ctx.destination);
+    o.start();
+    o.stop(ctx.currentTime + 1);
+    const u = JSON.parse(sessionStorage.getItem("sigo_oficial_logado"));
+    window.registrarLogInterno("POLICIA", u.nome, u.passaporte, `QRR ACIONADO`, "SISTEMA");
+    window.enviarWebhook(WEBHOOKS.GERAL, `🚨 [ QRR ] 🚨`, `**AGENTE:** ${u.patente} ${u.nome}`, "#dc2626");
+    window.sigoNotify("QRR", "Sinal emitido.", "aviso");
+};
+window.mudarAba = function (id) {
+    [
+        "aba-novo-aph",
+        "aba-historico",
+        "aba-uso-forca",
+        "aba-mandados",
+        "aba-detran",
+        "aba-delegacia-policia",
+        "aba-licencas",
+    ].forEach(window.hid);
+    [
+        "btn-aba-novo-aph",
+        "btn-aba-historico",
+        "btn-aba-uso-forca",
+        "btn-aba-mandados",
+        "btn-aba-detran",
+        "btn-aba-delegacia-policia",
+        "btn-aba-licencas",
+    ].forEach((i) => {
+        if (window.$(i)) window.$(i).classList.remove("ativo");
+    });
+    window.shw(id);
+    if (window.$("btn-" + id)) window.$("btn-" + id).classList.add("ativo");
+    window.atualizarAcaoLogado("EM PAINEL");
+    if (id === "aba-licencas") {
+        const u = JSON.parse(sessionStorage.getItem("sigo_oficial_logado"));
+        if (u && u.tipo !== "PF" && u.tipo !== "ADMIN" && u.tipo !== "DEV") {
+            if (window.$("painel-emitir-licenca")) window.$("painel-emitir-licenca").style.display = "none";
+            if (window.$("painel-buscar-licenca")) window.$("painel-buscar-licenca").classList.add("form-grid-full");
+        } else {
+            if (window.$("painel-emitir-licenca")) window.$("painel-emitir-licenca").style.display = "block";
+            if (window.$("painel-buscar-licenca")) window.$("painel-buscar-licenca").classList.remove("form-grid-full");
+        }
+        window.renderizarLicencasPainel();
+    }
+    if (id === "aba-mandados") window.renderizarProcurados();
+    if (id === "aba-delegacia-policia") window.renderizarBOCivisParaAnalise();
+    if (id === "aba-historico") window.carregarMeusBoletinsPainel();
+};
+window.trocarStatus = function () {
+    const b = window.$("btn-status-servico");
+    if (b) {
+        if (b.classList.contains("qap")) {
+            b.classList.remove("qap");
+            b.classList.add("qrv");
+            b.innerText = "[ QRV ] FORA DE SERVIÇO";
+            window.atualizarAcaoLogado("FORA DE SERVIÇO");
+        } else {
+            b.classList.remove("qrv");
+            b.classList.add("qap");
+            b.innerText = "[ QAP ] EM SERVIÇO";
+            window.atualizarAcaoLogado("EM PATRULHAMENTO");
+        }
+    }
+};
+
+window.refinarRelatoIA = async function (tipo) {
+    if (tipo === "aph") {
+        const rb = window.val("aph-relato"),
+            v = window.val("aph-viatura"),
+            lc = window.val("aph-local"),
+            p1 = window.val("vtr-p1") || "N/A",
+            p2 = window.val("vtr-p2") || "N/A",
+            p3 = window.val("vtr-p3") || "N/A",
+            p4 = window.val("vtr-p4") || "N/A";
+        if (!rb || !v || !lc) return window.sigoNotify("ERRO", "Preencha Viatura, Local e Relato.", "erro");
+        const b = window.$("btn-ia-aph");
+        b.innerHTML = "[ INICIANDO I.A... ]";
+        b.style.pointerEvents = "none";
+        let aIA = [];
+        aIA.push(`Relato Cru do Agente: "${rb}"`);
+        const c = await window.sigoPrompt("[ S.I.G.O. I.A ] Qual a categoria principal do crime?");
+        if (c === null) {
+            b.innerHTML = "[ REFINAR RELATO (IA) ]";
+            b.style.pointerEvents = "auto";
+            return window.sigoNotify("ABORTOU", "Cancelado.", "aviso");
+        }
+        let d1, d2;
+        const cl = c.toLowerCase();
+        if (cl.includes("tráfico") || cl.includes("droga")) {
+            d1 = await window.sigoPrompt("[ NARCO ] Substâncias/quantidades?");
+            if (d1 === null) {
+                b.innerHTML = "[ REFINAR ]";
+                b.style.pointerEvents = "auto";
+                return;
+            }
+            d2 = await window.sigoPrompt("[ NARCO ] Suspeito confessou?");
+            if (d2 === null) {
+                b.innerHTML = "[ REFINAR ]";
+                b.style.pointerEvents = "auto";
+                return;
+            }
+        } else if (cl.includes("roubo") || cl.includes("furto")) {
+            d1 = await window.sigoPrompt("[ PATRIMÔNIO ] Bens subtraídos?");
+            if (d1 === null) {
+                b.innerHTML = "[ REFINAR ]";
+                b.style.pointerEvents = "auto";
+                return;
+            }
+            d2 = await window.sigoPrompt("[ PATRIMÔNIO ] Usou arma?");
+            if (d2 === null) {
+                b.innerHTML = "[ REFINAR ]";
+                b.style.pointerEvents = "auto";
+                return;
+            }
+        } else {
+            d1 = await window.sigoPrompt("[ GERAL ] Atitude do suspeito?");
+            if (d1 === null) {
+                b.innerHTML = "[ REFINAR ]";
+                b.style.pointerEvents = "auto";
+                return;
+            }
+            d2 = await window.sigoPrompt("[ GERAL ] Houve resistência?");
+            if (d2 === null) {
+                b.innerHTML = "[ REFINAR ]";
+                b.style.pointerEvents = "auto";
+                return;
+            }
+        }
+        b.innerHTML = "[ FORMALIZANDO TEXTO... ]";
+        setTimeout(() => {
+            const dt = new Date().toLocaleDateString("pt-BR");
+            const nl = `Aos ${dt}, a guarnição operante na viatura ${v}, composta pelos agentes P1: ${p1}, P2: ${p2}, P3: ${p3} e P4: ${p4}, foi acionada para averiguar ocorrência com indícios de ${c.toUpperCase()} na localidade identificada como ${lc.toUpperCase()}.\n\nAo chegar no local supracitado, a equipe policial constatou a seguinte situação preliminar reportada pelo operador: ${rb}. \n\nDurante o desdobramento e averiguação tática, observou-se materialmente que: ${d1}. Em complemento aos fatos narrados, a equipe registrou o seguinte agravante: ${d2}.\n\nDiante da constatação dos fatos, a situação foi estabilizada e os procedimentos legais foram iniciados de imediato pela equipe.`;
+            const cx = window.$("aph-relato");
+            cx.value = nl;
+            cx.readOnly = true;
+            cx.style.backgroundColor = "#080b12";
+            cx.style.color = "#4ade80";
+            cx.style.border = "1px solid var(--success-green)";
+            window.setVal(
+                "aph-desfecho",
+                "Condução à delegacia para elaboração de polícia judiciária e adoção das medidas cabíveis."
+            );
+            window.$("aph-desfecho").readOnly = true;
+            b.innerHTML = "[ TEXTO FORMALIZADO ]";
+            b.style.background = "var(--success-green)";
+            b.style.color = "#000";
+            const u = JSON.parse(sessionStorage.getItem("sigo_oficial_logado"));
+            if (typeof window.enviarWebhookAuditoriaIA === "function")
+                window.enviarWebhookAuditoriaIA(u.nome, u.passaporte, aIA.join("\n"));
+            window.sigoNotify("SUCESSO", "Laudo redigido formalmente.", "sucesso");
+        }, 1500);
+    } else {
+        window.sigoNotify("INFO", "Em desenvolvimento.", "aviso");
+    }
+};
+
+window.assinarEnviarBOCB = function () {
+    const n = window.val("aph-socorrista-nome"),
+        p = window.val("aph-socorrista-pass"),
+        v = window.val("aph-viatura"),
+        a = window.val("aph-area"),
+        vn = window.val("aph-vitima-nome"),
+        vp = window.val("aph-vitima-pass"),
+        l = window.val("aph-local"),
+        r = window.val("aph-relato"),
+        d = window.val("aph-desfecho");
+    if (!v || !a || !vn || !l || !r) return window.sigoNotify("ERRO", "Preencha tudo.", "erro");
+    const b = window.$("btn-transmitir");
+    if (b) {
+        b.innerText = "ENVIANDO...";
+        b.style.pointerEvents = "none";
+    }
+    const pt = "BO-" + Math.floor(100000 + Math.random() * 900000);
+    const bo = {
+        tipo: "APH",
+        protocolo: pt,
+        data: new Date().toLocaleString("pt-BR"),
+        oficialNome: n,
+        oficialPass: p,
+        viatura: v,
+        area: a,
+        vitima: vn,
+        vitimaPass: vp,
+        local: l,
+        relato: r,
+        desfecho: d,
+        status: "ATIVO",
+    };
+    let h = JSON.parse(localStorage.getItem("sigo_historico_" + p)) || [];
+    h.push(bo);
+    localStorage.setItem("sigo_historico_" + p, JSON.stringify(h));
+    window.registrarLogInterno("POLICIA", n, p, `Boletim ${pt}`, "BOLETIM");
+    window.sigoNotify("ENVIADO", "Anexado à base.", "sucesso");
+    window.enviarWebhook(
+        WEBHOOKS.APH,
+        `📄 NOVO BOLETIM [${pt}]`,
+        `**Relator:** ${n} (ID: ${p})\n**VTR:** ${v} | **QTH:** ${l}\n**Envolvido:** ${vn} (ID: ${vp})\n\n**SÍNTESE DOS FATOS:**\n${r}`,
+        "#0ea5e9"
+    );
+    [
+        "aph-viatura",
+        "aph-vitima-nome",
+        "aph-vitima-pass",
+        "aph-local",
+        "aph-relato",
+        "aph-desfecho",
+        "vtr-p1",
+        "vtr-p2",
+        "vtr-p3",
+        "vtr-p4",
+    ].forEach((x) => window.setVal(x, ""));
+    if (window.$("aph-relato")) {
+        window.$("aph-relato").readOnly = false;
+        window.$("aph-relato").style = "";
+        window.$("aph-desfecho").readOnly = false;
+        const bia = window.$("btn-ia-aph");
+        if (bia) {
+            bia.innerHTML = "[ REFINAR RELATO (IA) ]";
+            bia.style = "";
+            bia.style.pointerEvents = "auto";
+        }
+    }
+    if (b) {
+        b.innerHTML = "[ ASSINAR E ENVIAR ARQUIVO AO DISCORD ]";
+        b.style.pointerEvents = "auto";
+    }
+    window.carregarMeusBoletinsPainel();
+    window.mudarAba("aba-historico");
+};
+window.assinarEnviarRUF = function () {
+    const n = window.val("aph-socorrista-nome"),
+        p = window.val("aph-socorrista-pass"),
+        v = window.val("ruf-viatura"),
+        l = window.val("ruf-local"),
+        nv = window.val("ruf-nivel"),
+        ds = window.val("ruf-disparos") || "0",
+        ar = window.val("ruf-arma"),
+        c = window.val("ruf-caracteristicas"),
+        ls = window.val("ruf-lesoes"),
+        sc = window.val("ruf-socorro"),
+        r = window.val("ruf-relato");
+    if (!v || !l || !ar || !c || !r) return window.sigoNotify("ERRO", "Preencha tudo.", "erro");
+    const b = window.$("btn-transmitir-ruf");
+    if (b) {
+        b.innerText = "ENVIANDO...";
+        b.style.pointerEvents = "none";
+    }
+    const pt = "RUF-" + Math.floor(100000 + Math.random() * 900000);
+    const bo = {
+        tipo: "RUF",
+        protocolo: pt,
+        data: new Date().toLocaleString("pt-BR"),
+        oficialNome: n,
+        oficialPass: p,
+        viatura: v,
+        local: l,
+        nivel: nv,
+        disparos: ds,
+        arma: ar,
+        alvo: c,
+        lesoes: ls,
+        socorro: sc,
+        relato: r,
+        status: "ATIVO",
+    };
+    let h = JSON.parse(localStorage.getItem("sigo_historico_" + p)) || [];
+    h.push(bo);
+    localStorage.setItem("sigo_historico_" + p, JSON.stringify(h));
+    window.sigoNotify("ENVIADO", "RUF formalizado.", "sucesso");
+    window.enviarWebhook(
+        WEBHOOKS.RUF,
+        `🔫 RELATÓRIO RUF [${pt}]`,
+        `**Operador:** ${n} (ID: ${p})\n**VTR:** ${v} | **QTH:** ${l}\n**Nível Força:** ${nv} | **Disparos:** ${ds}\n**Arma:** ${ar}\n\n**DINÂMICA:**\n${r}`,
+        "#b91c1c"
+    );
+    ["ruf-viatura", "ruf-local", "ruf-disparos", "ruf-arma", "ruf-caracteristicas", "ruf-relato"].forEach((x) =>
+        window.setVal(x, "")
+    );
+    if (b) {
+        b.innerHTML = "[ REGISTRAR E ENVIAR ARQUIVO AO DISCORD ]";
+        b.style.pointerEvents = "auto";
+    }
+    window.carregarMeusBoletinsPainel();
+    window.mudarAba("aba-historico");
+};
+
+window.carregarMeusBoletinsPainel = function () {
+    const u = JSON.parse(sessionStorage.getItem("sigo_oficial_logado"));
+    if (u) window.renderizarCardsOperacionais(JSON.parse(localStorage.getItem("sigo_historico_" + u.passaporte)) || []);
+};
+window.filtrarBoletins = function () {
+    const t = window.val("busca-boletim").toLowerCase();
+    const u = JSON.parse(sessionStorage.getItem("sigo_oficial_logado"));
+    const mh = JSON.parse(localStorage.getItem("sigo_historico_" + u.passaporte)) || [];
+    window.renderizarCardsOperacionais(
+        mh.filter(
+            (b) =>
+                b.protocolo.toLowerCase().includes(t) ||
+                b.local.toLowerCase().includes(t) ||
+                b.relato.toLowerCase().includes(t)
+        )
+    );
+};
+window.renderizarCardsOperacionais = function (l) {
+    if (!window.$("lista-meus-boletins")) return;
+    const la = l.filter((b) => b.status !== "ARQUIVADO");
+    if (la.length === 0)
+        return window.html(
+            "lista-meus-boletins",
+            `<div class="alerta font-mono" style="border-left-color:#334155;background:#0f172a;color:#64748b;">NENHUM REGISTRO ATIVO.</div>`
+        );
+    let h = "";
+    [...la].reverse().forEach((b) => {
+        let c = b.tipo === "RUF" ? "var(--bombeiro-dark)" : "var(--pm-blue)",
+            t = b.tipo === "RUF" ? "[ RUF ]" : "[ BO ]";
+        h += `<div class="card-boletim step-animado" style="border-left-color:${c};" onclick="abrirBoletimPainel('${b.protocolo}','${b.oficialPass}')"><div style="display:flex;justify-content:space-between;margin-bottom:8px;"><span style="font-size:13px;font-weight:800;color:#f8fafc;">${t} ${b.protocolo}</span><span style="font-size:10px;color:#64748b;">${b.data}</span></div><p style="font-size:11px;color:#cbd5e1;">QTH: ${b.local}</p></div>`;
+    });
+    window.html("lista-meus-boletins", h);
+};
+
+window.abrirBoletimPainel = function (pt, po = null) {
+    if (!po) po = JSON.parse(sessionStorage.getItem("sigo_oficial_logado")).passaporte;
+    const b = (JSON.parse(localStorage.getItem("sigo_historico_" + po)) || []).find((x) => x.protocolo === pt);
+    if (b) {
+        window.txt("modal-protocolo", b.protocolo);
+        const cf = JSON.parse(localStorage.getItem("sigo_global_ui")) || DEFAULT_CONFIG;
+        let dtS = b.data.split(" ")[0];
+        let h = `<div id="documento-print" style="width:800px; background:#fff; color:#000; font-family:'Helvetica Neue', Helvetica, Arial, sans-serif; padding:50px; margin:0 auto; position:relative; box-sizing:border-box;">`;
+        h += `<div style="position:absolute; top:0; left:0; width:100%; height:15px; background:linear-gradient(90deg, #b91c1c 0%, #1e293b 100%);"></div>`;
+        h += `<div style="text-align:center; margin-bottom:40px; margin-top:10px;"><img src="${cf.brasao}" style="width:80px; margin-bottom:15px;"><h2 style="margin:0; font-size:22px; font-weight:900; color:#0f172a; text-transform:uppercase;">${cf.nome}</h2><p style="margin:5px 0 15px 0; font-size:14px; font-weight:bold; color:#475569;">DEPARTAMENTO DE POLÍCIA JUDICIÁRIA</p><h3 style="margin:0; font-size:16px; border:2px solid #b91c1c; display:inline-block; padding:8px 20px; color:#b91c1c;">AUTOS DO PROTOCOLO: ${b.protocolo}</h3></div>`;
+        h += `<p style="text-align:right; font-size:12px; font-weight:bold; color:#64748b; border-bottom:1px solid #cbd5e1; padding-bottom:5px; margin-bottom:25px;">REGISTRADO EM: ${dtS} - CÓPIA AUTENTICADA</p>`;
+        if (b.tipo === "APH") {
+            h += `<div style="background:#f8fafc; border-left:4px solid #1e293b; padding:15px; margin-bottom:30px;"><p style="margin:5px 0; font-size:14px;"><strong>OFICIAL REDATOR:</strong> ${b.oficialNome} (MATRÍCULA: ${b.oficialPass})</p><p style="margin:5px 0; font-size:14px;"><strong>VIATURA / QTH:</strong> ${b.viatura} - ${b.local}</p><p style="margin:5px 0; font-size:14px;"><strong>ENVOLVIDO PRINCIPAL:</strong> ${b.vitima} (RG: ${b.vitimaPass})</p></div>`;
+            h += `<h4 style="color:#0f172a; border-bottom:2px solid #e2e8f0; padding-bottom:5px; margin-top:30px; font-size:16px;">I. NARRATIVA E SÍNTESE DOS FATOS</h4><div style="font-size:14px; line-height:1.8; text-align:justify; white-space:pre-wrap; margin-bottom:30px; color:#1e293b;">${b.relato}</div>`;
+            h += `<h4 style="color:#0f172a; border-bottom:2px solid #e2e8f0; padding-bottom:5px; margin-top:30px; font-size:16px;">II. DESFECHO TÁTICO E PROVIDÊNCIAS</h4><div style="font-size:14px; line-height:1.8; text-align:justify; white-space:pre-wrap; color:#1e293b;">${b.desfecho}</div>`;
+        } else {
+            h += `<div style="background:#f8fafc; border-left:4px solid #b91c1c; padding:15px; margin-bottom:30px;"><p style="margin:5px 0; font-size:14px;"><strong>AGENTE OPERADOR:</strong> ${b.oficialNome} (MATRÍCULA: ${b.oficialPass})</p><p style="margin:5px 0; font-size:14px;"><strong>VIATURA / QTH:</strong> ${b.viatura} - ${b.local}</p><p style="margin:5px 0; font-size:14px;"><strong>NÍVEL DA FORÇA:</strong> ${b.nivel} | <strong>DISPAROS:</strong> ${b.disparos}</p><p style="margin:5px 0; font-size:14px;"><strong>ARMAMENTO:</strong> ${b.arma}</p></div>`;
+            h += `<h4 style="color:#0f172a; border-bottom:2px solid #e2e8f0; padding-bottom:5px; margin-top:30px; font-size:16px;">I. QUALIFICAÇÃO DO OPOSITOR</h4><div style="font-size:14px; line-height:1.8; text-align:justify; white-space:pre-wrap; margin-bottom:30px; color:#1e293b;">${b.alvo}</div>`;
+            h += `<h4 style="color:#0f172a; border-bottom:2px solid #e2e8f0; padding-bottom:5px; margin-top:30px; font-size:16px;">II. DINÂMICA DA INTERVENÇÃO</h4><div style="font-size:14px; line-height:1.8; text-align:justify; white-space:pre-wrap; margin-bottom:30px; color:#1e293b;">${b.relato}</div>`;
+            h += `<h4 style="color:#0f172a; border-bottom:2px solid #e2e8f0; padding-bottom:5px; margin-top:30px; font-size:16px;">III. SALVAMENTO E LESÕES</h4><div style="font-size:14px; line-height:1.8; text-align:justify; white-space:pre-wrap; color:#1e293b;"><strong>LESÕES:</strong> ${b.lesoes}<br><strong>SOCORRO:</strong> ${b.socorro}</div>`;
+        }
+        h += `<div style="margin-top:70px; text-align:center;"><p style="font-style:italic; font-size:14px; color:#b91c1c; font-weight:bold;">"Publique-se, Registre-se e Cumpra-se."</p></div>`;
+        h += `<div style="margin-top:60px; text-align:center;"><p style="font-family:'Brush Script MT', 'Dancing Script', cursive; font-size:32px; margin:0; color:#0369a1;">${b.oficialNome}</p><hr style="width:300px; border:none; border-top:1px solid #000; margin:5px auto;"><p style="margin:0; font-size:12px; font-weight:800; text-transform:uppercase; color:#0f172a;">${b.oficialNome}<br><span style="color:#64748b;">ID FUNCIONAL: ${b.oficialPass}</span></p></div>`;
+        h += `</div>`;
+        window.html("conteudo-modal-dinamico", h);
+        window.$("conteudo-modal-dinamico").style.background = "#cbd5e1";
+        window.$("conteudo-modal-dinamico").style.padding = "20px 0";
+        window.shw("modal-boletim");
+    }
+};
+window.prepararEnvioDiscordDoModal = function () {
+    const pt = window.$("modal-protocolo").innerText;
+    let tw = pt.includes("RUF") ? "RUF" : "APH";
+    window.enviarImagemDiscord("documento-print", `${pt}.png`, tw, `Autos Oficiais - ${pt}`);
+};
+window.solicitarAlteracao = async function (te) {
+    const pt = window.$("modal-protocolo") ? window.$("modal-protocolo").innerText : "";
+    const u = JSON.parse(sessionStorage.getItem("sigo_oficial_logado"));
+    const m = await window.sigoPrompt(`Justificativa para ${te} do DOC ${pt}:`);
+    if (!m) return;
+    const sl = JSON.parse(localStorage.getItem("sigo_solicitacoes")) || [];
+    sl.push({
+        id: "SOL-" + Math.floor(1000 + Math.random() * 9000),
+        protocolo: pt,
+        tipo: te,
+        oficial: `${u.patente} ${u.nome}`,
+        oficialPass: u.passaporte,
+        motivo: m,
+        data: new Date().toLocaleString("pt-BR"),
+        status: "PENDENTE",
+    });
+    localStorage.setItem("sigo_solicitacoes", JSON.stringify(sl));
+    window.sigoNotify("ENVIADO", "Pedido de Corregedoria gerado.", "sucesso");
+    window.hid("modal-boletim");
+};
+
+window.expedirMandadoPrisao = function () {
+    const p = window.val("mandado-passaporte"),
+        m = window.val("mandado-motivo"),
+        pr = window.val("mandado-perigo");
+    if (!p || !m) return window.sigoNotify("ERRO", "Informe ID e Artigos.", "erro");
+    const dc = JSON.parse(localStorage.getItem("sigo_db_civis")) || {};
+    if (!dc[p]) return window.sigoNotify("ERRO", "Não existe na base.", "erro");
+    const ms = JSON.parse(localStorage.getItem("sigo_db_mandados")) || [];
+    if (ms.some((x) => x.passaporte === p && x.status === "ATIVO"))
+        return window.sigoNotify("ERRO", "Mandado já ativo.", "erro");
+    const u = JSON.parse(sessionStorage.getItem("sigo_oficial_logado"));
+    ms.push({
+        id: "MAND-" + Math.floor(10000 + Math.random() * 90000),
+        passaporte: p,
+        nomeCivil: dc[p].nome,
+        motivo: m,
+        perigo: pr,
+        emissor: `${u.patente} ${u.nome}`,
+        data: new Date().toLocaleString("pt-BR"),
+        status: "ATIVO",
+    });
+    localStorage.setItem("sigo_db_mandados", JSON.stringify(ms));
+    window.registrarLogInterno("POLICIA", u.nome, u.passaporte, `Mandado ID ${p}`, "INVESTIGACAO");
+    window.enviarWebhook(
+        WEBHOOKS.INVESTIGACAO,
+        `🚨 MANDADO EMITIDO`,
+        `**Emissor:** ${u.patente} ${u.nome}\n**Alvo ID:** ${p}\n**Motivo:** ${m}`,
+        "#b91c1c"
+    );
+    window.sigoNotify("ATIVO", "Adicionado aos procurados.", "sucesso");
+    window.setVal("mandado-passaporte", "");
+    window.setVal("mandado-motivo", "");
+    window.renderizarProcurados();
+};
+window.renderizarProcurados = function () {
+    if (!window.$("lista-procurados-ativos")) return;
+    const ms = (JSON.parse(localStorage.getItem("sigo_db_mandados")) || []).filter((x) => x.status === "ATIVO");
+    if (ms.length === 0)
+        return window.html(
+            "lista-procurados-ativos",
+            `<p class="font-mono" style="font-size:10px; color:#64748b;">Nenhum procurado.</p>`
+        );
+    let h = "";
+    ms.reverse().forEach((x) => {
+        let c = x.perigo === "ALTO" ? "var(--bombeiro-red)" : "#f97316";
+        h += `<div style="background:#080b12;border-left:3px solid ${c};padding:15px;margin-bottom:10px;border-radius:3px;"><span style="color:${c};font-size:12px;font-weight:800;">PROCURADO: ${x.nomeCivil}</span><br><span style="font-size:10px;color:#f8fafc;">ID: ${x.passaporte}</span><p style="font-size:10px;color:#cbd5e1;margin-top:5px;">Crimes: ${x.motivo}</p><button class="btn-neutro font-mono" style="padding:8px;font-size:9px;width:100%;margin-top:12px;color:var(--success-green);border-color:var(--success-green);" onclick="revogarMandado('${x.id}')">[ REGISTRAR PRISÃO ]</button></div>`;
+    });
+    window.html("lista-procurados-ativos", h);
+};
+window.revogarMandado = async function (id) {
+    const c = await window.sigoConfirm("Baixar mandado (Registrar prisão)?");
+    if (!c) return;
+    let ms = JSON.parse(localStorage.getItem("sigo_db_mandados")) || [];
+    const m = ms.find((x) => x.id === id);
+    if (m) {
+        m.status = "CUMPRIDO";
+        localStorage.setItem("sigo_db_mandados", JSON.stringify(ms));
+        window.sigoNotify("BAIXADO", "Prisão registrada.", "sucesso");
+        window.renderizarProcurados();
+        window.hid("alerta-procurado-global");
+    }
+};
+window.verificarMandadoPrisaoPainel = function (p) {
+    if (!p) return;
+    const at = (JSON.parse(localStorage.getItem("sigo_db_mandados")) || []).find(
+        (x) => x.passaporte === p && x.status === "ATIVO"
+    );
+    const a = window.$("alerta-procurado-global");
+    if (a) {
+        if (at) {
+            a.innerHTML = `[!!!] INDIVÍDUO (ID: ${p}) POSSUI MANDADO [!!!]`;
+            a.classList.remove("hidden");
+            let ctx = new (window.AudioContext || window.webkitAudioContext)();
+            let o = ctx.createOscillator();
+            o.type = "square";
+            o.frequency.setValueAtTime(800, ctx.currentTime);
+            o.connect(ctx.destination);
+            o.start();
+            o.stop(ctx.currentTime + 0.5);
+        } else a.classList.add("hidden");
+    }
+};
+
+window.mudarSubAbaDetran = function (sa) {
+    ["sub-detran-consulta", "sub-detran-registro", "sub-detran-pagamentos"].forEach(window.hid);
+    ["btn-sub-consulta", "btn-sub-registro", "btn-sub-pagamentos"].forEach((i) => {
+        if (window.$(i)) window.$(i).classList.remove("ativo");
+    });
+    window.shw("sub-detran-" + sa);
+    if (window.$("btn-sub-" + sa)) window.$("btn-sub-" + sa).classList.add("ativo");
+    if (sa === "pagamentos") window.renderizarMultasParaBaixa();
+};
+window.consultarPlacaPolicial = function () {
+    const pl = window.val("busca-placa-detran").toUpperCase();
+    if (pl.length < 7) return window.sigoNotify("ERRO", "Placa inválida.", "erro");
+    const v = (JSON.parse(localStorage.getItem("sigo_db_veiculos")) || {})[pl],
+        c = JSON.parse(localStorage.getItem("sigo_db_civis")) || {};
+    if (!v) {
+        window.hid("resultado-placa-policia");
+        return window.sigoNotify("SINESP", "Não encontrado.", "erro");
+    }
+    placaEmConsulta = v.placa;
+    window.txt("res-placa", v.placa);
+    window.txt(
+        "res-proprietario",
+        (c[v.proprietario] ? c[v.proprietario].nome : "DESCONHECIDO") + ` (ID: ${v.proprietario})`
+    );
+    window.txt("res-modelo", `${v.modelo} | COR: ${v.cor}`);
+    if (v.status === "APREENDIDO") {
+        window.html("res-status-badge", `<span class="status-badge bad">APREENDIDO</span>`);
+        window.shw("btn-liberar-patio");
+    } else {
+        window.html("res-status-badge", `<span class="status-badge ok">REGULAR</span>`);
+        window.hid("btn-liberar-patio");
+    }
+    window.shw("resultado-placa-policia");
+    window.sigoNotify("SINESP", "Localizado.", "sucesso");
+    window.verificarMandadoPrisaoPainel(v.proprietario);
+};
+window.aplicarAutuacaoVeiculo = function () {
+    if (!placaEmConsulta) return;
+    const m = window.val("autuacao-motivo"),
+        vl = window.val("autuacao-valor"),
+        ap = window.val("autuacao-apreensao"),
+        u = JSON.parse(sessionStorage.getItem("sigo_oficial_logado"));
+    if (!m || !vl) return window.sigoNotify("ERRO", "Preencha tudo.", "erro");
+    const dv = JSON.parse(localStorage.getItem("sigo_db_veiculos")) || {},
+        dm = JSON.parse(localStorage.getItem("sigo_db_multas")) || [];
+    dm.push({
+        id: "M-" + Math.floor(10000 + Math.random() * 90000),
+        passaporte: dv[placaEmConsulta].proprietario,
+        placa: placaEmConsulta,
+        motivo: m.toUpperCase(),
+        valor: vl,
+        oficial: `${u.patente} ${u.nome}`,
+        data: new Date().toLocaleString("pt-BR"),
+        status: "PENDENTE",
+    });
+    localStorage.setItem("sigo_db_multas", JSON.stringify(dm));
+    if (ap === "SIM") {
+        dv[placaEmConsulta].status = "APREENDIDO";
+        localStorage.setItem("sigo_db_veiculos", JSON.stringify(dv));
+    }
+    window.enviarWebhook(
+        WEBHOOKS.DETRAN,
+        "📋 INFRAÇÃO RODOVIÁRIA",
+        `**Placa:** ${placaEmConsulta}\n**Valor:** R$ ${vl},00\n**Agente:** ${u.nome}`,
+        "#ca8a04"
+    );
+    window.sigoNotify("AUTUADO", "Multa lançada.", "sucesso");
+    window.setVal("autuacao-motivo", "");
+    window.setVal("autuacao-valor", "");
+    window.consultarPlacaPolicial();
+};
+window.liberarVeiculoPatio = function () {
+    if (!placaEmConsulta) return;
+    const dv = JSON.parse(localStorage.getItem("sigo_db_veiculos")) || {};
+    dv[placaEmConsulta].status = "REGULAR";
+    localStorage.setItem("sigo_db_veiculos", JSON.stringify(dv));
+    window.sigoNotify("PÁTIO", "Liberado.", "sucesso");
+    window.consultarPlacaPolicial();
+};
+window.registrarVeiculoBanco = function () {
+    const p = window.val("reg-veiculo-passaporte"),
+        pl = window.val("reg-veiculo-placa").toUpperCase(),
+        m = window.val("reg-veiculo-modelo"),
+        c = window.val("reg-veiculo-cor");
+    if (!p || pl.length < 7 || !m || !c) return window.sigoNotify("ERRO", "Inválido.", "erro");
+    const dc = JSON.parse(localStorage.getItem("sigo_db_civis")) || {},
+        dv = JSON.parse(localStorage.getItem("sigo_db_veiculos")) || {};
+    if (!dc[p] || dv[pl]) return window.sigoNotify("ERRO", "ID falso ou Placa existe.", "erro");
+    dv[pl] = {
+        placa: pl,
+        proprietario: p,
+        modelo: m,
+        cor: c,
+        status: "REGULAR",
+        dataRegistro: new Date().toLocaleString("pt-BR"),
+    };
+    localStorage.setItem("sigo_db_veiculos", JSON.stringify(dv));
+    window.sigoNotify("SUCESSO", "Emplacado.", "sucesso");
+    ["reg-veiculo-passaporte", "reg-veiculo-placa", "reg-veiculo-modelo", "reg-veiculo-cor"].forEach((x) =>
+        window.setVal(x, "")
+    );
+};
+window.renderizarMultasParaBaixa = function () {
+    if (!window.$("lista-multas-analise")) return;
+    const ab = (JSON.parse(localStorage.getItem("sigo_db_multas")) || []).filter(
+        (x) => x.status === "AGUARDANDO_BAIXA"
+    );
+    if (ab.length === 0)
+        return window.html(
+            "lista-multas-analise",
+            `<p class="font-mono" style="color:#64748b;font-size:11px;">Nenhuma pendência.</p>`
+        );
+    let h = "";
+    ab.forEach((m) => {
+        h += `<div class="card-multa" style="border-color:var(--warning-yellow); display:flex; justify-content:space-between; align-items:center;"><div class="multa-info"><h5 style="color:var(--warning-yellow); font-size:14px;">${m.motivo}</h5><p style="color:#e2e8f0; font-size:11px;">Placa: ${m.placa}</p><p style="color:#cbd5e1; font-size:10px;">R$ ${m.valor},00</p></div><button class="btn-neutro font-mono" style="background:var(--success-green); color:#000; padding:10px; font-size:9px;" onclick="aprovarBaixaMulta('${m.id}')">[ APROVAR ]</button></div>`;
+    });
+    window.html("lista-multas-analise", h);
+};
+window.aprovarBaixaMulta = async function (id) {
+    const c = await window.sigoConfirm("Aprovar baixa?");
+    if (!c) return;
+    let dm = JSON.parse(localStorage.getItem("sigo_db_multas")) || [];
+    const i = dm.findIndex((x) => x.id === id);
+    if (i > -1) {
+        dm.splice(i, 1);
+        localStorage.setItem("sigo_db_multas", JSON.stringify(dm));
+        window.sigoNotify("BAIXADA", "Removida.", "sucesso");
+        window.renderizarMultasParaBaixa();
+    }
+};
+
+window.emitirLicencaCivil = function () {
+    const u = JSON.parse(sessionStorage.getItem("sigo_oficial_logado"));
+    if (u.tipo !== "PF" && u.tipo !== "ADMIN" && u.tipo !== "DEV")
+        return window.sigoNotify("NEGADO", "Apenas PF.", "erro");
+    const p = window.val("licenca-passaporte"),
+        t = window.val("licenca-tipo"),
+        ar = window.val("licenca-arma"),
+        m = window.val("licenca-municao"),
+        v = window.val("licenca-validade"),
+        o = window.val("licenca-obs");
+    if (!p || !v || !o) return window.sigoNotify("ERRO", "Preencha.", "erro");
+    const dc = JSON.parse(localStorage.getItem("sigo_db_civis")) || {};
+    if (!dc[p]) return window.sigoNotify("ERRO", "Não achado.", "erro");
+    const dl = JSON.parse(localStorage.getItem("sigo_db_licencas")) || [];
+    const pt = "CRAF-" + Math.floor(10000 + Math.random() * 90000);
+    dl.push({
+        id: pt,
+        passaporte: p,
+        tipo: t,
+        arma: ar,
+        municao: m,
+        validade: v.split("-").reverse().join("/"),
+        obs: o,
+        emissor: `${u.patente} ${u.nome}`,
+        data: new Date().toLocaleString("pt-BR"),
+    });
+    localStorage.setItem("sigo_db_licencas", JSON.stringify(dl));
+    window.sigoNotify("CRIADO", "Salvo.", "sucesso");
+    window.setVal("licenca-passaporte", "");
+    window.setVal("licenca-obs", "");
+    window.renderizarLicencasPainel();
+};
+window.renderizarLicencasPainel = function () {
+    if (!window.$("lista-licencas-ativas")) return;
+    const dl = JSON.parse(localStorage.getItem("sigo_db_licencas")) || [],
+        t = window.val("busca-licencas"),
+        f = dl.filter((x) => x.passaporte.includes(t));
+    if (f.length === 0)
+        return window.html(
+            "lista-licencas-ativas",
+            `<p class="font-mono" style="font-size:10px; color:#64748b;">Nada achado.</p>`
+        );
+    const u = JSON.parse(sessionStorage.getItem("sigo_oficial_logado")),
+        pe = u && (u.tipo === "PF" || u.tipo === "ADMIN" || u.tipo === "DEV");
+    let h = "";
+    f.reverse().forEach((x) => {
+        let br = pe
+            ? `<button class="btn-perigo font-mono" style="padding:8px; font-size:9px; width:100%; margin-top:12px;" onclick="revogarLicenca('${x.id}')">[ REVOGAR ]</button>`
+            : "";
+        h += `<div style="background:#080b12; border-left:3px solid #38bdf8; padding:15px; margin-bottom:10px; border-radius:3px;"><span style="color:#38bdf8; font-size:12px; font-weight:800;">${x.tipo}</span><br><span style="font-size:10px; color:#f8fafc;">ID: ${x.passaporte}</span><p style="font-size:10px; color:#cbd5e1; margin-top:10px;">Val: ${x.validade}</p>${br}</div>`;
+    });
+    window.html("lista-licencas-ativas", h);
+};
+window.revogarLicenca = async function (id) {
+    const c = await window.sigoConfirm("Revogar?");
+    if (!c) return;
+    let dl = JSON.parse(localStorage.getItem("sigo_db_licencas")) || [];
+    dl = dl.filter((x) => x.id !== id);
+    localStorage.setItem("sigo_db_licencas", JSON.stringify(dl));
+    window.sigoNotify("REVOGADA", "Cassada.", "sucesso");
+    window.renderizarLicencasPainel();
+};
+
+window.renderizarBOCivisParaAnalise = function () {
+    if (!window.$("lista-bos-civis-analise")) return;
+    const ba = (JSON.parse(localStorage.getItem("sigo_bos_civis")) || []).filter((x) => x.status === "EM ANÁLISE");
+    if (ba.length === 0)
+        return window.html(
+            "lista-bos-civis-analise",
+            `<p class="font-mono" style="color:#64748b;">Zero BOs Civis.</p>`
+        );
+    let h = "";
+    ba.forEach((b) => {
+        h += `<div style="background:#080b12; border-left:3px solid #38bdf8; padding:15px; margin-bottom:10px; border-radius:3px;"><span style="color:#38bdf8; font-size:12px; font-weight:800;">[ BO ONLINE ] ${b.tipo}</span><br><span style="font-size:10px; color:#f8fafc;">VÍTIMA: ${b.civilPass}</span><div style="background:#fff; border:1px solid #cbd5e1; padding:10px; border-radius:3px; font-size:11px; color:#334155; margin-top:10px; margin-bottom:15px;">"${b.relato}"</div><div style="display:flex; gap:10px;"><button class="btn-neutro font-mono" style="background:var(--success-green); color:#000;" onclick="aprovarBOCivil('${b.id}')">[ VALIDAR ]</button><button class="btn-perigo font-mono" onclick="rejeitarBOCivil('${b.id}')">[ REJEITAR ]</button></div></div>`;
+    });
+    window.html("lista-bos-civis-analise", h);
+};
+window.aprovarBOCivil = async function (id) {
+    const c = await window.sigoConfirm("Validar B.O.?");
+    if (!c) return;
+    let bs = JSON.parse(localStorage.getItem("sigo_bos_civis")) || [];
+    const b = bs.find((x) => x.id === id);
+    if (b) {
+        b.status = "VALIDADO";
+        localStorage.setItem("sigo_bos_civis", JSON.stringify(bs));
+        window.sigoNotify("VALIDADO", "BO Legalizado.", "sucesso");
+        window.renderizarBOCivisParaAnalise();
+    }
+};
+window.rejeitarBOCivil = async function (id) {
+    const m = await window.sigoPrompt("Motivo:");
+    if (!m) return;
+    let bs = JSON.parse(localStorage.getItem("sigo_bos_civis")) || [];
+    const b = bs.find((x) => x.id === id);
+    if (b) {
+        b.status = "REJEITADO";
+        localStorage.setItem("sigo_bos_civis", JSON.stringify(bs));
+        window.sigoNotify("REJEITADO", "Arquivado.", "aviso");
+        window.renderizarBOCivisParaAnalise();
+    }
+};
+
+window.carregarDadosAdmin = function () {
+    const u = JSON.parse(sessionStorage.getItem("sigo_oficial_logado"));
+    if (!u || (u.tipo !== "ADMIN" && u.tipo !== "DEV")) return (window.location.href = "index.html");
+    if (window.$("topbar-nome-admin")) window.txt("topbar-nome-admin", u.patente + " " + u.nome);
+    if (typeof window.renderizarEfetivo === "function") window.renderizarEfetivo("TODOS");
+    if (typeof window.renderizarAuditoria === "function") window.renderizarAuditoria();
+    if (typeof window.renderizarSolicitacoes === "function") window.renderizarSolicitacoes();
+    if (window.$("lista-interruptores")) window.renderizarInterruptores();
+    if (window.$("config-sigla")) {
+        const cf = JSON.parse(localStorage.getItem("sigo_global_ui")) || DEFAULT_CONFIG;
+        window.setVal("config-sigla", cf.sigla);
+        window.setVal("config-nome", cf.nome);
+        window.setVal("config-brasao", cf.brasao);
+    }
+    window.atualizarDashboard();
+    if (localStorage.getItem("sigo_manutencao") === "true" && window.$("btn-toggle-manutencao")) {
+        window.$("btn-toggle-manutencao").classList.add("ativa");
+        window.$("btn-toggle-manutencao").innerText = "[ ATIVAR REDE ]";
+    }
+};
+window.mudarAbaAdmin = function (id) {
+    [
+        "aba-dashboard",
+        "aba-efetivo",
+        "aba-batalhoes",
+        "aba-auditoria",
+        "aba-solicitacoes",
+        "aba-logs",
+        "aba-config",
+    ].forEach(window.hid);
+    [
+        "btn-aba-dashboard",
+        "btn-aba-efetivo",
+        "btn-aba-batalhoes",
+        "btn-aba-auditoria",
+        "btn-aba-solicitacoes",
+        "btn-aba-logs",
+        "btn-aba-config",
+    ].forEach((i) => {
+        if (window.$(i)) window.$(i).classList.remove("ativo");
+    });
+    window.shw(id);
+    if (window.$("btn-" + id)) window.$("btn-" + id).classList.add("ativo");
+    if (id === "aba-solicitacoes") window.renderizarSolicitacoes();
+    if (id === "aba-dashboard") window.atualizarDashboard();
+    if (id === "aba-logs") window.renderizarLogsAdmin();
+    if (id === "aba-batalhoes") window.renderizarBatalhoes();
+};
+window.atualizarDashboard = function () {
+    if (!window.$("stat-efetivo")) return;
+    const dm = JSON.parse(localStorage.getItem("sigo_db_usuarios")) || {},
+        dc = JSON.parse(localStorage.getItem("sigo_db_civis")) || {};
+    window.txt("stat-efetivo", Object.keys(dm).length);
+    if (window.$("stat-civis")) window.txt("stat-civis", Object.keys(dc).length);
+    window.txt("stat-batalhoes", (JSON.parse(localStorage.getItem("sigo_db_batalhoes")) || []).length);
+    let tb = 0;
+    Object.keys(dm).forEach((p) => {
+        tb += (JSON.parse(localStorage.getItem("sigo_historico_" + p)) || []).length;
+    });
+    window.txt("stat-boletins", tb);
+};
+window.alternarManutencao = async function () {
+    const c = await window.sigoConfirm("Alternar status da rede governamental?");
+    if (!c) return;
+    const b = window.$("btn-toggle-manutencao");
+    if (localStorage.getItem("sigo_manutencao") === "true") {
+        localStorage.setItem("sigo_manutencao", "false");
+        b.classList.remove("ativa");
+        b.innerText = "[ DESATIVAR REDE ]";
+        window.sigoNotify("SISTEMA", "Rede Online.", "sucesso");
+    } else {
+        localStorage.setItem("sigo_manutencao", "true");
+        b.classList.add("ativa");
+        b.innerText = "[ ATIVAR REDE ]";
+        window.sigoNotify("SISTEMA", "Rede em Manutenção.", "aviso");
+    }
+};
+window.setFiltro = function (tf, btn) {
+    filtroAtual = tf;
+    document.querySelectorAll(".btn-filtro").forEach((x) => {
+        if (!x.id.includes("log") && !x.id.includes("sub")) x.classList.remove("ativo");
+    });
+    btn.classList.add("ativo");
+    window.renderizarEfetivo(tf);
+};
+window.renderizarEfetivo = function (tf = filtroAtual) {
+    if (!window.$("lista-efetivo")) return;
+    const dm = JSON.parse(localStorage.getItem("sigo_db_usuarios")) || {},
+        dc = JSON.parse(localStorage.getItem("sigo_db_civis")) || {},
+        tx = window.val("busca-efetivo").toLowerCase();
+    let hc = "";
+    Object.values(dm).forEach((u) => {
+        if ((tf === "TODOS" || u.tipo === tf) && (u.nome.toLowerCase().includes(tx) || u.passaporte.includes(tx))) {
+            let cc = u.tipo === "ADMIN" ? "var(--admin-gold)" : u.tipo === "DEV" ? "#c084fc" : "var(--pm-blue)";
+            let sd = u.online ? '<span class="status-dot online"></span>' : '<span class="status-dot offline"></span>';
+            hc += `<div class="card-user" style="border-top:3px solid ${cc};" onclick="abrirPerfilUsuario('${u.passaporte}','MILITAR')"><div class="card-user-header"><span class="user-pass">ID: ${u.passaporte}</span><span class="user-tipo">${u.tipo}</span></div><p class="user-nome">${sd} ${u.nome}</p></div>`;
+        }
+    });
+    if (tf === "TODOS" || tf === "CIVIL") {
+        Object.values(dc).forEach((c) => {
+            if (c.nome.toLowerCase().includes(tx) || c.passaporte.includes(tx)) {
+                hc += `<div class="card-user" style="border-top:3px solid var(--success-green);" onclick="abrirPerfilUsuario('${c.passaporte}','CIVIL')"><div class="card-user-header"><span class="user-pass">ID: ${c.passaporte}</span><span class="user-tipo">CIDADÃO</span></div><p class="user-nome">${c.nome}</p></div>`;
+            }
+        });
+    }
+    window.html("lista-efetivo", hc);
+};
+
+window.abrirModalUsuario = function () {
+    window.txt("titulo-modal-user", "EMITIR ACESSO");
+    window.setVal("cad-user-pass", "");
+    if (window.$("cad-user-pass")) window.$("cad-user-pass").disabled = false;
+    ["cad-user-pin", "cad-user-pos", "cad-user-nome", "cad-user-patente", "cad-user-corp", "cad-user-foto"].forEach(
+        (i) => window.setVal(i, "")
+    );
+    window.shw("modal-cad-usuario");
+};
+window.fecharModalUsuario = function () {
+    window.hid("modal-cad-usuario");
+};
+window.salvarUsuario = function () {
+    const p = window.val("cad-user-pass"),
+        s = window.val("cad-user-pin"),
+        ps = window.val("cad-user-pos"),
+        n = window.val("cad-user-nome"),
+        t = window.val("cad-user-tipo"),
+        pt = window.val("cad-user-patente"),
+        cp = window.val("cad-user-corp"),
+        f = window.val("cad-user-foto");
+    if (!p || !s || !n) return window.sigoNotify("ERRO", "Campos obrigatórios vazios.", "erro");
+    if ((t === "ADMIN" || t === "DEV") && !ps) return window.sigoNotify("ERRO", "Pós-senha necessária.", "erro");
+    const db = JSON.parse(localStorage.getItem("sigo_db_usuarios")) || {};
+    let nvo = !db[p];
+    db[p] = {
+        passaporte: p,
+        senha: s,
+        posSenha: ps || "123",
+        nome: n,
+        tipo: t,
+        patente: pt,
+        corp: cp,
+        foto: f || DEFAULT_CONFIG.brasao,
+        status: nvo ? "ATIVO" : db[p].status,
+        ip: nvo ? gerarIPFake() : db[p].ip,
+        online: nvo ? false : db[p].online,
+        ultimaAcao: nvo ? "CRIADO" : db[p].ultimaAcao,
+    };
+    localStorage.setItem("sigo_db_usuarios", JSON.stringify(db));
+    window.fecharModalUsuario();
+    window.renderizarEfetivo();
+    window.atualizarDashboard();
+    window.sigoNotify("SALVO", "Oficial registrado com sucesso.", "sucesso");
+};
+window.abrirPerfilUsuario = function (p, tc) {
+    if (!window.$("conteudo-perfil-usuario")) return;
+    if (tc === "MILITAR") {
+        const u = JSON.parse(localStorage.getItem("sigo_db_usuarios"))[p];
+        let tb = u.status === "ATIVO" ? "[ SUSPENDER ]" : "[ REATIVAR ]";
+        window.html(
+            "conteudo-perfil-usuario",
+            `<div style="display:flex; gap:20px; align-items:center; margin-bottom:20px;"><img src="${u.foto}" style="width:80px;"><div style="flex:1;"><h4>${u.nome}</h4><p>${u.passaporte} - ${u.tipo}</p></div></div><div class="botoes-modal"><button class="btn-neutro" onclick="editarUsuarioDoPerfil('${u.passaporte}')">[ EDITAR ]</button><button class="btn-neutro" style="color:var(--warning-yellow);" onclick="alternarStatusUsuario('${u.passaporte}','MILITAR')">${tb}</button><button class="btn-perigo" onclick="excluirUsuarioPermanente('${u.passaporte}','MILITAR')">[ EXCLUIR ]</button></div>`
+        );
+    } else {
+        const c = JSON.parse(localStorage.getItem("sigo_db_civis"))[p];
+        let tbc = c.status === "SUSPENSO" ? "[ REATIVAR ]" : "[ BLOQUEAR ]";
+        window.html(
+            "conteudo-perfil-usuario",
+            `<div style="display:flex; gap:20px; align-items:center; margin-bottom:20px;"><img src="${c.foto}" style="width:80px;"><div style="flex:1;"><h4>${c.nome}</h4><p>${c.passaporte} (CIDADÃO)</p></div></div><div class="botoes-modal"><button class="btn-neutro" onclick="mudarFotoCivil('${c.passaporte}')">[ FOTO ]</button><button class="btn-neutro" style="color:var(--warning-yellow);" onclick="alternarStatusUsuario('${c.passaporte}','CIVIL')">${tbc}</button><button class="btn-perigo" onclick="excluirUsuarioPermanente('${c.passaporte}','CIVIL')">[ EXCLUIR ]</button></div>`
+        );
+    }
+    window.shw("modal-perfil-usuario");
+};
+window.editarUsuarioDoPerfil = function (p) {
+    window.hid("modal-perfil-usuario");
+    const u = JSON.parse(localStorage.getItem("sigo_db_usuarios"))[p];
+    window.txt("titulo-modal-user", "ATUALIZAR");
+    window.setVal("cad-user-pass", u.passaporte);
+    if (window.$("cad-user-pass")) window.$("cad-user-pass").disabled = true;
+    window.setVal("cad-user-pin", u.senha);
+    window.setVal("cad-user-pos", u.posSenha);
+    window.setVal("cad-user-nome", u.nome);
+    window.setVal("cad-user-tipo", u.tipo);
+    window.setVal("cad-user-patente", u.patente);
+    window.setVal("cad-user-corp", u.corp);
+    window.setVal("cad-user-foto", u.foto === DEFAULT_CONFIG.brasao ? "" : u.foto);
+    window.shw("modal-cad-usuario");
+};
+window.mudarFotoCivil = async function (p) {
+    const url = await window.sigoPrompt("URL da nova foto:");
+    if (!url) return;
+    const db = JSON.parse(localStorage.getItem("sigo_db_civis"));
+    db[p].foto = url;
+    localStorage.setItem("sigo_db_civis", JSON.stringify(db));
+    window.abrirPerfilUsuario(p, "CIVIL");
+};
+
+window.alternarStatusUsuario = async function (p, tc) {
+    if (p === "3447" || p === "0000")
+        return window.sigoNotify("NEGADO", "Este usuário possui blindagem de sistema.", "erro");
+    const c = await window.sigoConfirm(
+        tc === "MILITAR" ? "Alterar acesso deste Oficial?" : "Bloquear acesso deste Cidadão?"
+    );
+    if (!c) return;
+    const db =
+        tc === "MILITAR"
+            ? JSON.parse(localStorage.getItem("sigo_db_usuarios"))
+            : JSON.parse(localStorage.getItem("sigo_db_civis"));
+    if (db[p]) {
+        db[p].status = db[p].status === "ATIVO" ? "SUSPENSO" : "ATIVO";
+        tc === "MILITAR"
+            ? localStorage.setItem("sigo_db_usuarios", JSON.stringify(db))
+            : localStorage.setItem("sigo_db_civis", JSON.stringify(db));
+        window.hid("modal-perfil-usuario");
+        window.renderizarEfetivo();
+        window.sigoNotify("STATUS ATUALIZADO", `Acesso alterado para ${db[p].status}.`, "aviso");
+        window.registrarLogInterno("ADMIN", "Comando", p, `Alterou status para ${db[p].status}`, "SISTEMA");
+    }
+};
+window.excluirUsuarioPermanente = async function (p, tc) {
+    if (p === "3447" || p === "0000") return window.sigoNotify("NEGADO", "Usuário blindado.", "erro");
+    const c = await window.sigoConfirm("EXCLUSÃO PERMANENTE. O usuário sumirá da base. Confirma?");
+    if (!c) return;
+    const db =
+        tc === "MILITAR"
+            ? JSON.parse(localStorage.getItem("sigo_db_usuarios"))
+            : JSON.parse(localStorage.getItem("sigo_db_civis"));
+    if (db[p]) {
+        delete db[p];
+        tc === "MILITAR"
+            ? localStorage.setItem("sigo_db_usuarios", JSON.stringify(db))
+            : localStorage.setItem("sigo_db_civis", JSON.stringify(db));
+        window.hid("modal-perfil-usuario");
+        window.renderizarEfetivo();
+        window.atualizarDashboard();
+        window.sigoNotify("DELETADO", "Registro completamente obliterado da base.", "sucesso");
+        window.registrarLogInterno("ADMIN", "Comando", p, `Excluiu registro do ID ${p}`, "SISTEMA");
+    }
+};
+
+window.adicionarBatalhao = function () {
+    const n = window.val("novo-batalhao-nome");
+    if (!n) return window.sigoNotify("ERRO", "Digite o nome.", "erro");
+    const b = JSON.parse(localStorage.getItem("sigo_db_batalhoes")) || [];
+    b.push(n);
+    localStorage.setItem("sigo_db_batalhoes", JSON.stringify(b));
+    window.setVal("novo-batalhao-nome", "");
+    window.renderizarBatalhoes();
+    window.atualizarDashboard();
+    window.sigoNotify("SUCESSO", "Batalhão adicionado.", "sucesso");
+};
+window.renderizarBatalhoes = function () {
+    if (!window.$("lista-batalhoes")) return;
+    let hc = "";
+    (JSON.parse(localStorage.getItem("sigo_db_batalhoes")) || []).forEach((x, i) => {
+        hc += `<div class="caixa-batalhao"><span style="font-weight:600; font-size:11px; color:#e2e8f0;">${x}</span><button class="btn-remover-oficial" onclick="removerBatalhao(${i})">[ REMOVER ]</button></div>`;
+    });
+    window.html("lista-batalhoes", hc);
+};
+window.removerBatalhao = async function (i) {
+    const c = await window.sigoConfirm("Apagar batalhão?");
+    if (!c) return;
+    const b = JSON.parse(localStorage.getItem("sigo_db_batalhoes")) || [];
+    b.splice(i, 1);
+    localStorage.setItem("sigo_db_batalhoes", JSON.stringify(b));
+    window.renderizarBatalhoes();
+    window.atualizarDashboard();
+};
+
+window.renderizarAuditoria = function () {
+    if (!window.$("lista-auditoria")) return;
+    const tx = window.val("busca-auditoria").toLowerCase();
+    const dm = JSON.parse(localStorage.getItem("sigo_db_usuarios"));
+    let tb = [];
+    Object.keys(dm).forEach((p) => {
+        tb = tb.concat(JSON.parse(localStorage.getItem("sigo_historico_" + p)) || []);
+    });
+    let hc = "";
+    tb.reverse()
+        .filter((b) => b.protocolo.toLowerCase().includes(tx) || b.oficialPass.includes(tx))
+        .forEach((b) => {
+            let ia = b.status === "ARQUIVADO";
+            let c = ia ? "#475569" : b.tipo === "RUF" ? "var(--bombeiro-dark)" : "var(--pm-blue)";
+            let ba = ia ? `<span style="color:#ef4444; font-size:10px; margin-left:10px;">[ ARQUIVADO ]</span>` : "";
+            hc += `<div class="card-boletim" style="border-left-color:${c}; opacity: ${ia ? "0.6" : "1"}; text-decoration: ${ia ? "line-through" : "none"};" onclick="abrirBoletimPainel('${b.protocolo}','${b.oficialPass}')"><div class="card-topo"><span class="card-titulo">[ ${b.tipo} ] ${b.protocolo} ${ba}</span></div><p class="card-detalhe" style="text-decoration: none;">Agente: ${b.oficialNome}</p></div>`;
+        });
+    window.html("lista-auditoria", hc);
+};
+window.renderizarSolicitacoes = function () {
+    if (!window.$("lista-solicitacoes")) return;
+    let hc = "";
+    (JSON.parse(localStorage.getItem("sigo_solicitacoes")) || []).reverse().forEach((s, i) => {
+        hc += `<div class="card-solicitacao"><div class="card-solicitacao-header"><span class="solicitacao-tipo">[ ${s.tipo} ] - ${s.protocolo}</span></div><p style="font-size:10px; color:#cbd5e1; margin-bottom:8px;">DE: ${s.oficial}</p><div style="background:#05070a; padding:15px; border-radius:4px; font-size:11px; color:#94a3b8; margin-bottom:15px;">"${s.motivo}"</div><div style="display:flex; gap:10px;"><button class="btn-neutro" style="background:var(--success-green); color:#000;" onclick="aprovarSolicitacao(${i})">[ AUTORIZAR ]</button><button class="btn-perigo" onclick="negarSolicitacao(${i})">[ NEGAR ]</button></div></div>`;
+    });
+    window.html("lista-solicitacoes", hc);
+};
+
+window.aprovarSolicitacao = async function (i) {
+    const sl = JSON.parse(localStorage.getItem("sigo_solicitacoes")) || [];
+    const s = sl[i];
+    if (s.tipo === "EXCLUSAO" || s.tipo === "ARQUIVAMENTO") {
+        let historico = JSON.parse(localStorage.getItem("sigo_historico_" + s.oficialPass)) || [];
+        const novoHistorico = historico.filter((b) => b.protocolo !== s.protocolo);
+        if (historico.length !== novoHistorico.length) {
+            localStorage.setItem("sigo_historico_" + s.oficialPass, JSON.stringify(novoHistorico));
+            window.sigoNotify("DEFERIDO", "Documento excluído da base central com sucesso.", "sucesso");
+            window.registrarLogInterno(
+                "ADMIN",
+                "Comando",
+                s.oficialPass,
+                `Excluiu B.O/RUF ${s.protocolo}`,
+                "AUDITORIA"
+            );
+        } else {
+            window.sigoNotify("ERRO", "Documento não encontrado.", "erro");
+        }
+    } else {
+        window.sigoNotify("DEFERIDO", "Solicitação autorizada.", "sucesso");
+    }
+    sl.splice(i, 1);
+    localStorage.setItem("sigo_solicitacoes", JSON.stringify(sl));
+    window.renderizarSolicitacoes();
+    window.renderizarAuditoria();
+    if (typeof window.carregarMeusBoletinsPainel === "function") window.carregarMeusBoletinsPainel();
+};
+window.negarSolicitacao = function (i) {
+    const sl = JSON.parse(localStorage.getItem("sigo_solicitacoes")) || [];
+    sl.splice(i, 1);
+    localStorage.setItem("sigo_solicitacoes", JSON.stringify(sl));
+    window.sigoNotify("INDEFERIDO", "Negado.", "aviso");
+    window.renderizarSolicitacoes();
+};
+window.setFiltroLog = function (t, b) {
+    filtroLogAtual = t;
+    b.parentElement.querySelectorAll(".btn-filtro").forEach((x) => x.classList.remove("ativo"));
+    b.classList.add("ativo");
+    window.renderizarLogsAdmin();
+};
+window.renderizarLogsAdmin = function () {
+    if (!window.$("lista-logs-sistema")) return;
+    const tx = window.val("busca-logs-admin").toLowerCase();
+    let hc = "";
+    (JSON.parse(localStorage.getItem("sigo_db_logs")) || [])
+        .reverse()
+        .filter((l) => {
+            return (
+                (filtroLogAtual === "TODOS" || l.modulo === filtroLogAtual || l.categoria === filtroLogAtual) &&
+                (l.autor.toLowerCase().includes(tx) ||
+                    l.passaporte.includes(tx) ||
+                    l.detalhes.toLowerCase().includes(tx))
+            );
+        })
+        .forEach((l) => {
+            hc += `<div class="log-card log-cat-${l.categoria} step-animado"><div><span style="font-size:9px; color:#64748b;">[ ${l.data} ] MÓDULO: ${l.modulo}</span><p style="font-size:12px; color:#f8fafc; font-weight:800; margin-top:5px;">${l.detalhes}</p></div><span style="font-size:8px; background:#1e293b; padding:4px 8px; border-radius:2px; color:#cbd5e1;">${l.id}</span></div>`;
+        });
+    window.html("lista-logs-sistema", hc);
+};
+
+window.renderizarInterruptores = function () {
+    if (!window.$("lista-interruptores")) return;
+    const m = JSON.parse(localStorage.getItem("sigo_modulos")) || DEFAULT_MODULES;
+    let hc = "";
+    Object.keys(m).forEach((k) => {
+        let ia = m[k];
+        let c = ia ? "var(--success-green)" : "#475569";
+        let ts = ia ? "ONLINE" : "OFFLINE";
+        hc += `<div style="background:#080b12;border-left:3px solid ${c};padding:15px;margin-bottom:10px;display:flex;justify-content:space-between;align-items:center;"><div><span style="color:#f8fafc;font-size:12px;font-weight:800;text-transform:uppercase;">MÓDULO: ${k}</span><br><span style="font-size:10px;color:${c};">[ ${ts} ]</span></div><button class="btn-neutro font-mono" style="padding:8px 15px;font-size:10px;" onclick="toggleModulo('${k}')">[ ALTERAR ]</button></div>`;
+    });
+    window.html("lista-interruptores", hc);
+};
+window.toggleModulo = async function (m) {
+    const ms = JSON.parse(localStorage.getItem("sigo_modulos")) || DEFAULT_MODULES;
+    ms[m] = !ms[m];
+    localStorage.setItem("sigo_modulos", JSON.stringify(ms));
+    window.aplicarTravaModulos();
+    window.renderizarInterruptores();
+    window.sigoNotify("SISTEMA", `Módulo ${m} ${ms[m] ? "ativado" : "desativado"}.`, "aviso");
+};
+window.salvarConfiguracoes = function () {
+    const s = window.val("config-sigla"),
+        n = window.val("config-nome"),
+        b = window.val("config-brasao");
+    if (!s || !n) return window.sigoNotify("ERRO", "Preencha.", "erro");
+    const c = { sigla: s, nome: n, brasao: b || DEFAULT_CONFIG.brasao };
+    localStorage.setItem("sigo_global_ui", JSON.stringify(c));
+    window.carregarConfiguracoesGlobais();
+    window.sigoNotify("SALVO", "Atualizado.", "sucesso");
+};
+window.abrirModalTesteWebhook = function () {
+    window.shw("modal-teste-webhook");
+};
+
+document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape") {
+        [
+            "modal-boletim",
+            "modal-cad-usuario",
+            "modal-perfil-usuario",
+            "modal-documento-licenca",
+            "modal-teste-webhook",
+        ].forEach(window.hid);
+    }
+    if (e.key === "Enter") {
+        if (e.target.tagName === "TEXTAREA" || e.target.id === "prompt-input") return;
+        if (
+            !window.$("step-identificacao")?.classList.contains("hidden") &&
+            document.activeElement.id === "input-cpf"
+        ) {
+            window.iniciarBusca();
+        } else if (!window.$("step-pin-militar")?.classList.contains("hidden")) {
+            window.validarPin();
+        } else if (!window.$("step-pin-civil")?.classList.contains("hidden")) {
+            window.validarPinCivil();
+        }
     }
 });
+
+window.salvarModulos = function() {
+    window.aplicarTravaModulos();
+    window.sigoNotify("SISTEMA", "Diretrizes de Módulos sincronizadas e salvas.", "sucesso");
+    const u = JSON.parse(sessionStorage.getItem("sigo_oficial_logado"));
+    if(u) window.registrarLogInterno("ADMIN", u.nome, u.passaporte, "Sincronizou os Módulos Globais", "CONFIG");
+};
+
+
+
+setInterval(() => {
+    if (!localStorage.getItem("sigo_db_usuarios")) {
+        console.warn("[WATCHDOG] Restaurando DB...");
+        window.inicializarBanco();
+    }
+    const l = JSON.parse(sessionStorage.getItem("sigo_oficial_logado"));
+    if (l && l.tipo !== "CIVIL") {
+        const db = JSON.parse(localStorage.getItem("sigo_db_usuarios"));
+        if (!db || !db[l.passaporte] || db[l.passaporte].status === "SUSPENSO") {
+            sessionStorage.removeItem("sigo_oficial_logado");
+            window.location.href = "index.html";
+        } else {
+            db[l.passaporte].online = true;
+            localStorage.setItem("sigo_db_usuarios", JSON.stringify(db));
+        }
+    }
+}, 10000);
+/* FIM S.I.G.O BETA COMPLETO */
+
+
+
