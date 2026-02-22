@@ -1,0 +1,459 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>S.I.G.O. | Gabinete Master</title>
+    <link rel="icon" id="favicon-global" href="https://cdn-icons-png.flaticon.com/512/2566/2566144.png"
+        type="image/png">
+    <link rel="stylesheet" href="css/style.css">
+</head>
+
+
+<body class="body-painel" onload="carregarDadosAdmin()">
+    <div id="tela-manutencao" class="hidden" style="position:fixed; top:0; left:0; width:100%; height:100%; background:radial-gradient(circle at center, #0f172a 0%, #05070a 100%); z-index:999999; display:flex; flex-direction:column; justify-content:center; align-items:center; color:#fff; text-align:center;">
+        <img src="https://cdn-icons-png.flaticon.com/512/2566/2566144.png" style="width:120px; filter:grayscale(100%); margin-bottom:20px; opacity:0.8;">
+        <h1 style="color:#ef4444; font-family:'JetBrains Mono',monospace; letter-spacing:3px; border-bottom:1px solid #ef4444; padding-bottom:10px;">[ REDE OFFLINE ]</h1>
+        <p style="color:#94a3b8; max-width:500px; margin-top:20px; font-size:14px; line-height:1.6;">O Comando Geral determinou a suspensão temporária dos acessos à rede S.I.G.O. para manutenção estratégica e atualizações de segurança.</p>
+        <p style="color:#475569; font-size:10px; margin-top:30px; font-family:'JetBrains Mono',monospace;">Aguarde novas diretrizes operacionais.</p>
+    </div>
+    <div class="dashboard-layout" id="main-container">
+        <aside class="sidebar">
+            <div class="sidebar-header"><img id="logo-sidebar-admin"
+                    src="https://cdn-icons-png.flaticon.com/512/2566/2566144.png"
+                    style="width:40px; margin-bottom:10px;">
+                <h1 class="titulo-sigo-pequeno" id="titulo-sidebar-admin">S.I.G.O.</h1>
+                <p class="subtitulo-sidebar" style="color: var(--admin-gold);">Gabinete Alto Comando</p>
+            </div>
+            <nav class="sidebar-menu">
+                <p class="menu-label">CONTROLE E GESTÃO</p><button class="menu-btn ativo font-mono"
+                    id="btn-aba-dashboard" onclick="mudarAbaAdmin('aba-dashboard')">[ DASHBOARD GERAL ]</button><button
+                    class="menu-btn font-mono" id="btn-aba-efetivo" onclick="mudarAbaAdmin('aba-efetivo')">[ GERENCIAR
+                    CIDADÃOS / EFETIVO ]</button><button class="menu-btn font-mono" id="btn-aba-batalhoes"
+                    onclick="mudarAbaAdmin('aba-batalhoes')">[ ESTRUTURAS / LOTAÇÕES ]</button>
+                <p class="menu-label mt-15">SUPERVISÃO E AUDITORIA</p><button class="menu-btn font-mono"
+                    id="btn-aba-solicitacoes" onclick="mudarAbaAdmin('aba-solicitacoes')"
+                    style="color: var(--success-green);">[ DESPACHOS CORREGEDORIA ]</button><button
+                    class="menu-btn font-mono" id="btn-aba-auditoria" onclick="mudarAbaAdmin('aba-auditoria')">[
+                    ARQUIVOS DA REDE ]</button><button class="menu-btn font-mono" id="btn-aba-logs"
+                    onclick="mudarAbaAdmin('aba-logs')" style="color: #94a3b8;">[ LOGS DO SISTEMA ]</button>
+                <p class="menu-label mt-15" style="color: #c084fc;">SISTEMA INTELIGENTE (DEV)</p><button
+                    class="menu-btn font-mono" id="btn-aba-config" onclick="mudarAbaAdmin('aba-config')"
+                    style="color: #c084fc; border-color: rgba(192,132,252,0.2);">[ CONFIGURAÇÕES GLOBAIS ]</button>
+            </nav>
+        </aside>
+        <main class="main-content">
+            <header class="topbar">
+                <div class="topbar-esq"><span class="badge font-mono"
+                        style="background: var(--admin-gold); color: #000;">MASTER CORE</span>
+                    <h2 class="nome-oficial-topbar" id="topbar-nome-admin" style="color: var(--admin-gold);">
+                        CARREGANDO...</h2>
+                </div>
+                <div class="topbar-dir"><button class="btn-sair font-mono" onclick="deslogarSistema()">[ DESCONECTAR
+                        REDE ]</button></div>
+            </header>
+            <div class="area-trabalho" id="aba-dashboard">
+                <div class="cabecalho-documento" style="border-bottom-color: var(--admin-gold);">
+                    <h3 style="color: var(--admin-gold);">VISÃO GERAL DO SISTEMA</h3>
+                </div>
+                <div class="stats-grid">
+                    <div class="stat-card"><span class="stat-valor" id="stat-efetivo">0</span><span
+                            class="stat-label">Policiais Registrados</span></div>
+                    <div class="stat-card"><span class="stat-valor" id="stat-civis"
+                            style="color: var(--success-green);">0</span><span class="stat-label">Civis
+                            Registrados</span></div>
+                    <div class="stat-card"><span class="stat-valor" id="stat-batalhoes">0</span><span
+                            class="stat-label">Lotações</span></div>
+                    <div class="stat-card"><span class="stat-valor" id="stat-boletins">0</span><span
+                            class="stat-label">Boletins Emitidos</span></div>
+                </div>
+                <div class="form-grid mt-25">
+                    <div class="form-painel"
+                        style="border-color: var(--bombeiro-red); background: rgba(220, 38, 38, 0.05);">
+                        <h4 class="form-section-title" style="color: var(--bombeiro-red);">CONTROLE DA TROPA</h4>
+                        <p style="font-size: 11px; color: #cbd5e1; margin-bottom: 15px;">Bloqueia o acesso de todos os
+                            Policiais e Civis (Apenas ADMIN loga).</p><button id="btn-toggle-manutencao"
+                            class="btn-toggle-manutencao font-mono" onclick="alternarManutencao()">[ DESATIVAR REDE DA
+                            TROPA ]</button>
+                    </div>
+                    <div class="form-painel"
+                        style="border-color: var(--pm-blue); background: rgba(56, 189, 248, 0.05);">
+                        <h4 class="form-section-title" style="color: var(--pm-blue);">DIAGNÓSTICO DE WEBHOOKS</h4>
+                        <p style="font-size: 11px; color: #cbd5e1; margin-bottom: 15px;">Teste todas as rotas do Discord
+                            para verificar se os links estão operantes.</p><button class="btn-entrar font-mono"
+                            style="background: var(--pm-blue); color: #000; border: none;"
+                            onclick="abrirModalTesteWebhook()">[ INICIAR DISPAROS DE TESTE ]</button>
+                    </div>
+                </div>
+            </div>
+            <div class="area-trabalho hidden" id="aba-efetivo">
+                <div class="cabecalho-documento"
+                    style="border-bottom-color: var(--admin-gold); display: flex; justify-content: space-between; align-items: center;">
+                    <div>
+                        <h3 style="color: var(--admin-gold);">CIDADÃOS E EFETIVO</h3>
+                        <p>Gerenciamento de contas e suspensões.</p>
+                    </div><button class="btn-entrar font-mono" style="width: auto; padding: 10px 20px;"
+                        onclick="abrirModalUsuario()">[ + EMITIR CREDENCIAL ]</button>
+                </div>
+                <div class="filtros-efetivo"><button class="btn-filtro ativo font-mono"
+                        onclick="setFiltro('TODOS', this)">[ TODOS ]</button><button class="btn-filtro font-mono"
+                        onclick="setFiltro('CIVIL', this)"
+                        style="color: var(--success-green); border-color: var(--success-green);">[ CIDADÃOS
+                        ]</button><button class="btn-filtro font-mono" onclick="setFiltro('PM', this)">[ PMESP
+                        ]</button><button class="btn-filtro font-mono" onclick="setFiltro('PC', this)">[ PCSP
+                        ]</button><button class="btn-filtro font-mono" onclick="setFiltro('PF', this)">[ POLÍCIA FEDERAL
+                        ]</button><button class="btn-filtro font-mono" onclick="setFiltro('PRF', this)">[ PRF
+                        ]</button><button class="btn-filtro font-mono" onclick="setFiltro('BOMBEIRO', this)">[ CBMESP
+                        ]</button><button class="btn-filtro font-mono" onclick="setFiltro('ADMIN', this)">[ ALTO COMANDO
+                        ]</button></div>
+                <div class="caixa-busca-historico"><input type="text" id="busca-efetivo" class="input-busca font-mono"
+                        placeholder="Pesquisar por Nome, ID ou Lotação..." onkeyup="renderizarEfetivo()"></div>
+                <div class="lista-efetivo-grid" id="lista-efetivo"></div>
+            </div>
+            <div class="area-trabalho hidden" id="aba-batalhoes">
+                <div class="cabecalho-documento" style="border-bottom-color: var(--admin-gold);">
+                    <h3 style="color: var(--admin-gold);">LOTAÇÕES REGISTRADAS</h3>
+                </div>
+                <div class="form-painel" style="max-width: 600px;">
+                    <div class="input-group"><label>Nome da Nova Estrutura</label><input type="text"
+                            id="novo-batalhao-nome" placeholder="Ex: 5º BAEP"></div><button class="btn-entrar font-mono"
+                        onclick="adicionarBatalhao()">[ ADICIONAR ESTRUTURA ]</button>
+                </div>
+                <div class="grid-batalhoes mt-25" id="lista-batalhoes"></div>
+            </div>
+            <div class="area-trabalho hidden" id="aba-solicitacoes">
+                <div class="cabecalho-documento" style="border-bottom-color: var(--success-green);">
+                    <h3 style="color: var(--success-green);">CORREGEDORIA: DESPACHOS PENDENTES</h3>
+                </div>
+                <div id="lista-solicitacoes"></div>
+            </div>
+            <div class="area-trabalho hidden" id="aba-auditoria">
+                <div class="cabecalho-documento" style="border-bottom-color: var(--admin-gold);">
+                    <h3 style="color: var(--admin-gold);">AUDITORIA DE BOLETINS DA REDE</h3>
+                </div>
+                <div class="caixa-busca-historico"><input type="text" id="busca-auditoria" class="input-busca font-mono"
+                        placeholder="Consultar protocolos ou agentes..." onkeyup="renderizarAuditoria()"></div>
+                <div id="lista-auditoria"></div>
+            </div>
+            <div class="area-trabalho hidden" id="aba-logs">
+                <div class="cabecalho-documento" style="border-bottom-color: #94a3b8;">
+                    <h3 style="color: #94a3b8;">LOGS DO SISTEMA</h3>
+                    <p>Auditoria invisível de ações.</p>
+                </div>
+                <div class="filtros-efetivo" style="margin-bottom: 15px;"><button class="btn-filtro ativo font-mono"
+                        id="log-TODOS" onclick="setFiltroLog('TODOS', this)">[ TODOS ]</button><button
+                        class="btn-filtro font-mono" id="log-LOGIN" onclick="setFiltroLog('LOGIN', this)">[ AUTENTICAÇÃO
+                        ]</button><button class="btn-filtro font-mono" id="log-BOLETIM"
+                        onclick="setFiltroLog('BOLETIM', this)">[ OCORRÊNCIAS ]</button><button
+                        class="btn-filtro font-mono" id="log-DETRAN" onclick="setFiltroLog('DETRAN', this)">[ TRÂNSITO
+                        ]</button><button class="btn-filtro font-mono" id="log-SISTEMA"
+                        onclick="setFiltroLog('SISTEMA', this)">[ GESTÃO ADMIN ]</button></div><input type="text"
+                    id="busca-logs-admin" class="input-busca font-mono" style="margin-bottom: 20px;"
+                    placeholder="Buscar em logs..." onkeyup="renderizarLogsAdmin()">
+                <div id="lista-logs-sistema" style="max-height: 600px; overflow-y: auto;"></div>
+            </div>
+            <div class="area-trabalho hidden" id="aba-config">
+                <div class="cabecalho-documento" style="border-bottom-color: #c084fc;">
+                    <h3 style="color: #c084fc;">SISTEMA INTELIGENTE E PERSONALIZAÇÃO</h3>
+                    <p>Altere a identidade visual e os módulos do painel em tempo real.</p>
+                </div>
+                <div class="form-grid">
+                    <div class="form-painel" style="border-color:#c084fc; background:rgba(192,132,252,0.05);">
+                        <h4 class="form-section-title" style="color:#c084fc;">IDENTIDADE VISUAL</h4>
+                        <div class="input-group"><label>Sigla do Sistema</label><input type="text" id="config-sigla"
+                                placeholder="Ex: S.I.G.O."></div>
+                        <div class="input-group"><label>Nome Completo (Rodapé/Documentos)</label><input type="text"
+                                id="config-nome" placeholder="Ex: Secretaria de Segurança Pública"></div>
+                        <div class="input-group"><label>URL do Brasão Principal (Imgur/Discord)</label><input
+                                type="text" id="config-brasao" placeholder="Link final .png"></div><button
+                            class="btn-entrar font-mono mt-15" style="background:#c084fc; color:#000; border:none;"
+                            onclick="salvarConfiguracoesGlobais()">[ APLICAR IDENTIDADE ]</button>
+                    </div>
+                    <div class="form-painel" style="border-color:#334155;">
+                        <h4 class="form-section-title" style="color:#f8fafc;">CONTROLE DE MÓDULOS</h4>
+                        <div id="lista-interruptores"></div><button class="btn-neutro font-mono mt-15"
+                            style="width:100%;" onclick="salvarModulos()">[ SALVAR MÓDULOS ]</button>
+                    </div>
+                </div>
+                <div class="form-painel mt-25" style="border-color:#7f1d1d; background:rgba(127,29,29,0.1);">
+                    <h4 class="form-section-title" style="color:#ef4444;">ZONA DE PERIGO: WIPE DE TEMPORADA</h4>
+                    <p style="font-size:11px; color:#cbd5e1; margin-bottom:15px;">Esta ação apagará permanentemente
+                        todos os civis, veículos, multas, BOs e inquéritos. Exige autenticação de 2 fatores via Webhook.
+                    </p><button class="btn-entrar font-mono"
+                        style="background:#7f1d1d; color:#fff; border:1px solid #ef4444;"
+                        onclick="iniciarWipeSeguro()">[ INICIAR PROTOCOLO DE WIPE SEGURO ]</button>
+                </div>
+            </div>
+        </main>
+    </div>
+    <div id="modal-cad-usuario" class="modal-overlay hidden">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="titulo-modal-user" class="font-mono">EMITIR CREDENCIAL</h3><button class="btn-fechar-modal"
+                    onclick="fecharModalUsuario()">[ X ]</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-grid">
+                    <div class="input-group"><label>Passaporte</label><input type="text" id="cad-user-pass"
+                            maxlength="4" oninput="this.value = this.value.replace(/[^0-9]/g, '')"></div>
+                    <div class="input-group"><label>Senha Numérica</label><input type="password" id="cad-user-pin">
+                    </div>
+                </div>
+                <div class="form-grid">
+                    <div class="input-group"><label>Pós-Senha (Master/Dev)</label><input type="password"
+                            id="cad-user-pos"></div>
+                    <div class="input-group"><label>Nome (In-game)</label><input type="text" id="cad-user-nome"></div>
+                </div>
+                <div class="form-grid">
+                    <div class="input-group"><label>Corporação / Tipo</label><select id="cad-user-tipo"
+                            onchange="document.getElementById('cad-user-pos').disabled = (this.value !== 'ADMIN' && this.value !== 'DEV')">
+                            <option value="PM">PMESP</option>
+                            <option value="PC">PCSP</option>
+                            <option value="BOMBEIRO">CBMESP</option>
+                            <option value="PF">POLÍCIA FEDERAL</option>
+                            <option value="PRF">PRF</option>
+                            <option value="ADMIN">COMANDO MASTER</option>
+                            <option value="DEV">DEV (INSPETOR GERAL)</option>
+                        </select></div>
+                    <div class="input-group"><label>Patente / Cargo</label><input type="text" id="cad-user-patente"
+                            placeholder="Ex: SD"></div>
+                </div>
+                <div class="input-group"><label>Lotação Específica</label><input type="text" id="cad-user-corp"></div>
+                <div class="input-group"><label>URL da Foto (Discord ou Imgur)</label><input type="text"
+                        id="cad-user-foto" placeholder="Deixe em branco para usar o brasão padrão"></div>
+            </div>
+            <div class="modal-footer"><button class="btn-entrar btn-azul font-mono" onclick="salvarUsuario()">[ GRAVAR
+                    NA REDE ]</button></div>
+        </div>
+    </div>
+    <div id="modal-perfil-usuario" class="modal-overlay hidden">
+        <div class="modal-content" style="max-width:500px;">
+            <div class="modal-header">
+                <h3 class="font-mono">FICHA DE VERIFICAÇÃO</h3><button class="btn-fechar-modal"
+                    onclick="document.getElementById('modal-perfil-usuario').classList.add('hidden')">[ X ]</button>
+            </div>
+            <div class="modal-body">
+                <div id="conteudo-perfil-usuario"></div>
+            </div>
+        </div>
+    </div>
+    <div id="modal-teste-webhook" class="modal-overlay hidden">
+        <div class="modal-content" style="max-width:500px;">
+            <div class="modal-header" style="background:#0f172a; border-bottom:2px solid var(--pm-blue);">
+                <h3 class="font-mono" style="color:var(--pm-blue);">[ ⚙️ DIAGNÓSTICO DE REDE ]</h3><button
+                    class="btn-fechar-modal"
+                    onclick="document.getElementById('modal-teste-webhook').classList.add('hidden')">[ X ]</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-painel" style="background:#05070a;">
+                    <div id="log-testes-webhooks"
+                        style="font-family:'JetBrains Mono', monospace; font-size:10px; color:#64748b; height:150px; overflow-y:auto; background:#000; padding:10px; border:1px solid #1e293b; margin-bottom:15px;">
+                        > Aguardando inicialização...</div><button class="btn-entrar font-mono"
+                        style="background:var(--pm-blue); color:#fff; border:none; width:100%;"
+                        onclick="dispararTesteWebhooks()">[ INICIAR DISPAROS ]</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div id="modal-boletim" class="hidden"
+        style="position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.8);z-index:9999;display:flex;justify-content:center;align-items:center;">
+        <div
+            style="background:#0f172a;width:90%;max-width:700px;border-radius:4px;border:2px solid var(--pm-blue);display:flex;flex-direction:column;max-height:90vh;">
+            <div
+                style="background:var(--pm-blue);padding:15px;display:flex;justify-content:space-between;align-items:center;color:#000;">
+                <h3 style="font-family:'JetBrains Mono',monospace;font-size:14px;font-weight:800;">[ AUTOS ELETRÔNICOS ]
+                    - <span id="modal-protocolo"></span></h3><button
+                    onclick="document.getElementById('modal-boletim').classList.add('hidden')"
+                    style="background:transparent;border:none;color:#000;font-size:16px;cursor:pointer;font-weight:900;">X</button>
+            </div>
+            <div id="conteudo-modal-dinamico" style="padding:20px;overflow-y:auto;flex:1;background:#f1f5f9;"></div>
+            <div class="modal-footer" id="footer-botoes-bo"
+                style="display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px;padding:15px;background:#080b12;border-top:1px solid #1e293b;">
+                <div style="display:flex;gap:10px;"><button class="btn-neutro font-mono"
+                        style="color:var(--warning-yellow);padding:10px;background:transparent;border:1px solid var(--warning-yellow);cursor:pointer;border-radius:3px;"
+                        onclick="solicitarAlteracao('EDICAO')">[ SOLICITAR EDIÇÃO ]</button><button
+                        class="btn-perigo font-mono"
+                        style="padding:10px;background:#7f1d1d;color:#fff;border:none;cursor:pointer;border-radius:3px;"
+                        onclick="solicitarAlteracao('ARQUIVAMENTO')">[ SOLICITAR EXCLUSÃO / ARQUIVAR ]</button></div>
+                <button class="btn-entrar font-mono"
+                    style="background:#0284c7;color:#fff;border:none;padding:10px;cursor:pointer;font-weight:bold;border-radius:3px;box-shadow:0 4px 15px rgba(2,132,199,0.4);"
+                    onclick="prepararEnvioDiscordDoModal()">[ 🖨️ IMPRIMIR E ENVIAR AO DISCORD ]</button>
+            </div>
+        </div>
+    </div>
+    <script src="js/app.js"></script>
+    <style>
+    /* 1. CURSOR HUD E FUNDO AURORA ANIMADO */
+    * { cursor: crosshair !important; } /* Mira Tática */
+    
+    body, html {
+        background-color: #030712 !important;
+        color: #e2e8f0 !important;
+        overflow-x: hidden;
+    }
+
+    /* Aurora Breathing - Luzes vivas no fundo */
+    body::after {
+        content: "";
+        position: fixed; top: -50%; left: -50%; width: 200%; height: 200%;
+        background: radial-gradient(circle at 50% 50%, rgba(14, 165, 233, 0.15), transparent 40%),
+                    radial-gradient(circle at 80% 20%, rgba(139, 92, 246, 0.1), transparent 30%);
+        animation: auroraPulse 15s ease-in-out infinite alternate;
+        z-index: -1; pointer-events: none;
+    }
+    @keyframes auroraPulse {
+        0% { transform: scale(1) translate(0, 0); }
+        100% { transform: scale(1.1) translate(-2%, 5%); }
+    }
+
+    /* 2. EFEITO GLITCH NOS TÍTULOS (CYBERPUNK) */
+    h1, h2, h3, .card-titulo {
+        position: relative;
+        text-shadow: 0 0 10px rgba(56, 189, 248, 0.5);
+    }
+    h2:hover {
+        animation: glitch 0.3s cubic-bezier(.25, .46, .45, .94) both infinite;
+    }
+    @keyframes glitch {
+        0% { transform: translate(0) }
+        20% { transform: translate(-2px, 1px) }
+        40% { transform: translate(-1px, -1px) }
+        60% { transform: translate(2px, 1px) }
+        80% { transform: translate(1px, -1px) }
+        100% { transform: translate(0) }
+    }
+
+    /* 3. GLASSMORPHISM HOLOGRÁFICO (Borda Iluminada) */
+    [id^="modal-"] > div, .card-solicitacao, .botoes-modal {
+        background: rgba(15, 23, 42, 0.4) !important;
+        backdrop-filter: blur(24px) saturate(200%) !important;
+        -webkit-backdrop-filter: blur(24px) saturate(200%) !important;
+        border: 1px solid rgba(255, 255, 255, 0.05) !important;
+        box-shadow: 0 30px 60px rgba(0, 0, 0, 0.6), inset 0 1px 1px rgba(255, 255, 255, 0.1) !important;
+        position: relative;
+    }
+    
+    /* Linha de Neon que corre por cima dos modais */
+    [id^="modal-"] > div::before {
+        content: ''; position: absolute; top: 0; left: 0; right: 0; height: 1px;
+        background: linear-gradient(90deg, transparent, #38bdf8, transparent);
+        opacity: 0.6;
+    }
+
+    /* 4. CARDS PREPARADOS PARA 3D */
+    .card-boletim, .card-user, .card-multa, .card-veiculo {
+        background: linear-gradient(145deg, rgba(30, 41, 59, 0.7) 0%, rgba(15, 23, 42, 0.9) 100%) !important;
+        border: 1px solid rgba(56, 189, 248, 0.1) !important;
+        border-left: 3px solid #0ea5e9 !important;
+        border-radius: 12px !important;
+        transform-style: preserve-3d; /* Permite o eixo Z */
+        transform: perspective(1000px);
+        transition: box-shadow 0.3s ease, border-color 0.3s ease;
+    }
+    
+    /* Efeito de Profundidade interna no Card */
+    .card-boletim *, .card-user * {
+        transform: translateZ(20px); /* O texto "flutua" pra fora do card */
+    }
+
+    .card-boletim:hover, .card-user:hover {
+        box-shadow: 0 20px 40px rgba(14, 165, 233, 0.2), 0 0 15px rgba(14, 165, 233, 0.2) inset !important;
+        border-color: rgba(56, 189, 248, 0.4) !important;
+        border-left-width: 6px !important;
+    }
+
+    /* 5. CAIXAS DE TEXTO (NEON GLOW) */
+    input, select, textarea {
+        background: rgba(2, 6, 23, 0.5) !important;
+        border: 1px solid rgba(71, 85, 105, 0.5) !important;
+        color: #7dd3fc !important;
+        backdrop-filter: blur(10px);
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    }
+    input:focus, textarea:focus {
+        border-color: #0ea5e9 !important;
+        box-shadow: 0 0 20px rgba(14, 165, 233, 0.3), inset 0 0 10px rgba(14, 165, 233, 0.1) !important;
+        transform: translateY(-2px);
+    }
+
+    /* 6. BOTÕES PREPARADOS PARA MAGNETISMO */
+    button {
+        position: relative;
+        overflow: hidden;
+        border-radius: 6px !important;
+        transition: background 0.3s, color 0.3s, box-shadow 0.3s !important;
+        /* A transição do transform será controlada pelo JS magnético */
+    }
+    .btn-entrar {
+        background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%) !important;
+        box-shadow: 0 4px 15px rgba(2, 132, 199, 0.4), inset 0 1px 1px rgba(255,255,255,0.2) !important;
+        border: 1px solid #0ea5e9 !important;
+    }
+    .btn-entrar:hover {
+        box-shadow: 0 8px 25px rgba(14, 165, 233, 0.6) !important;
+        text-shadow: 0 0 8px rgba(255,255,255,0.8);
+    }
+</style>
+
+<script>
+    // =====================================================================
+    // MOTOR DE FÍSICA (TILT 3D E BOTÕES MAGNÉTICOS)
+    // =====================================================================
+    function aplicarFisicaQuantica() {
+        // 1. CARDS COM 3D TILT (Rastreamento de Mouse)
+        const cards = document.querySelectorAll('.card-boletim, .card-user, .card-multa, .card-veiculo');
+        cards.forEach(card => {
+            card.addEventListener('mousemove', (e) => {
+                const rect = card.getBoundingClientRect();
+                const x = e.clientX - rect.left; // Posição X dentro do card
+                const y = e.clientY - rect.top;  // Posição Y dentro do card
+                
+                const centerX = rect.width / 2;
+                const centerY = rect.height / 2;
+                
+                // Calcula a angulação baseada em quão longe o mouse está do centro
+                const rotateX = ((y - centerY) / centerY) * -10; // Max 10 graus
+                const rotateY = ((x - centerX) / centerX) * 10;
+                
+                card.style.transform = `perspective(1000px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale3d(1.02, 1.02, 1.02)`;
+                card.style.transition = 'none'; // Tira a transição para seguir o mouse rápido
+            });
+
+            card.addEventListener('mouseleave', () => {
+                // Reseta o card suavemente quando o mouse sai
+                card.style.transform = `perspective(1000px) rotateX(0deg) rotateY(0deg) scale3d(1, 1, 1)`;
+                card.style.transition = 'transform 0.5s cubic-bezier(0.25, 0.8, 0.25, 1)';
+            });
+        });
+
+        // 2. BOTÕES MAGNÉTICOS (O botão tenta "grudar" no cursor)
+        const botoes = document.querySelectorAll('button');
+        botoes.forEach(btn => {
+            btn.addEventListener('mousemove', (e) => {
+                const rect = btn.getBoundingClientRect();
+                const x = e.clientX - rect.left - rect.width / 2;
+                const y = e.clientY - rect.top - rect.height / 2;
+                
+                // Move o botão até 15px na direção do mouse
+                btn.style.transform = `translate(${x * 0.3}px, ${y * 0.3}px)`;
+                btn.style.transition = 'none';
+            });
+
+            btn.addEventListener('mouseleave', () => {
+                // Volta pro lugar original
+                btn.style.transform = `translate(0px, 0px)`;
+                btn.style.transition = 'transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275)';
+            });
+        });
+    }
+
+    // Como os cards são gerados dinamicamente pelo S.I.G.O., 
+    // precisamos aplicar a física a cada 2 segundos para pegar cards novos.
+    setInterval(aplicarFisicaQuantica, 2000);
+    aplicarFisicaQuantica();
+</script>
+</body>
+
+</html>
